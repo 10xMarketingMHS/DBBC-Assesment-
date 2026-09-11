@@ -737,13 +737,17 @@ function syncVideos() {
 function placeVideoLayer() {
   const slot = screen.querySelector(".video-slot") || screen.querySelector(".hero-thumb");
   if (!slot || !players.size) { layer.style.width = layer.style.height = "0px"; return; }
-  const s = stage.getBoundingClientRect();
-  const r = slot.getBoundingClientRect();
-  layer.style.top = `${r.top - s.top + stage.scrollTop}px`;
-  layer.style.left = `${r.left - s.left + stage.scrollLeft}px`;
-  layer.style.width = `${r.width}px`;
-  layer.style.height = `${r.height}px`;
+  // Use layout offsets, not getBoundingClientRect: offsets ignore CSS transforms, so the position is
+  // correct even if this runs while the page is still sliding in (the slot starts 28px lower).
+  let top = 0, left = 0, el = slot;
+  while (el && el !== stage) { top += el.offsetTop; left += el.offsetLeft; el = el.offsetParent; }
+  if (el !== stage) return; // slot not laid out inside the stage yet
+  layer.style.top = `${top}px`;
+  layer.style.left = `${left}px`;
+  layer.style.width = `${slot.offsetWidth}px`;
+  layer.style.height = `${slot.offsetHeight}px`;
 }
+layer.addEventListener("animationend", placeVideoLayer);
 
 const layoutObserver = "ResizeObserver" in window ? new ResizeObserver(() => placeVideoLayer()) : null;
 function observeLayout() {
