@@ -154,78 +154,6 @@
   .video-layer.enter-down { animation: dropIn .6s var(--ease) both; }
   .video-layer.leave-up   { animation: leaveUp .3s ease-in both; }
   .video-layer.leave-down { animation: leaveDown .3s ease-in both; }
-  /* custom play cover (Safari, and paused videos everywhere) */
-  .video-cover {
-    position: absolute; inset: 0; z-index: 2;
-    width: 100%; height: 100%; margin: 0; padding: 0; border: 0; border-radius: 0;
-    font: inherit; color: inherit; cursor: pointer; -webkit-appearance: none; appearance: none;
-    display: grid; place-items: center;
-    background-color: var(--navy-800); background-position: center; background-size: cover;
-    transition: opacity .45s var(--ease), visibility .45s;
-  }
-  .video-cover::before {
-    content: ""; position: absolute; inset: 0;
-    background:
-      radial-gradient(circle at 50% 50%, rgba(5, 10, 28, .10) 0%, rgba(5, 10, 28, .45) 75%),
-      linear-gradient(180deg, rgba(5, 10, 28, 0) 50%, rgba(5, 10, 28, .78) 100%);
-  }
-  .video-cover:not(.poster-ready)::after {
-    content: ""; position: absolute; inset: 0;
-    background: radial-gradient(circle at 50% 45%, rgba(43, 123, 255, .22), transparent 65%);
-  }
-  .video-cover.is-hidden { opacity: 0; visibility: hidden; }
-
-  .play-btn {
-    position: relative; z-index: 1;
-    width: clamp(70px, 10vw, 96px); aspect-ratio: 1; border-radius: 50%;
-    display: grid; place-items: center;
-    background: rgba(255, 255, 255, .12);
-    border: 1px solid rgba(255, 255, 255, .38);
-    -webkit-backdrop-filter: blur(12px) saturate(140%); backdrop-filter: blur(12px) saturate(140%);
-    box-shadow: 0 24px 60px -16px rgba(0, 0, 0, .7), inset 0 1px 0 rgba(255, 255, 255, .25);
-    transition: transform .35s var(--ease);
-  }
-  .play-btn::before, .play-btn::after {
-    content: ""; position: absolute; inset: -1px; border-radius: 50%;
-    border: 1.5px solid rgba(90, 155, 255, .65);
-    animation: playRing 2.6s var(--ease) infinite;
-  }
-  .play-btn::after { animation-delay: 1.3s; }
-  .play-core {
-    width: 74%; aspect-ratio: 1; border-radius: 50%;
-    display: grid; place-items: center;
-    background: linear-gradient(145deg, #5C9DFF 0%, #2B7BFF 45%, #1A56D6 100%);
-    box-shadow: 0 12px 32px -6px rgba(43, 123, 255, .95), inset 0 1px 0 rgba(255, 255, 255, .45), inset 0 -6px 14px rgba(8, 30, 90, .35);
-  }
-  .play-core svg { width: 40%; height: 40%; margin-left: 9%; filter: drop-shadow(0 2px 4px rgba(0, 0, 0, .25)); }
-  .vp:hover .play-btn { transform: scale(1.07); }
-  .video-cover:active .play-btn { transform: scale(.96); }
-  .video-cover:focus-visible { outline: 3px solid var(--blue-hi); outline-offset: -3px; }
-  /* short loading state between tap and first frame */
-  .video-cover.is-loading .play-core svg { opacity: 0; }
-  .video-cover.is-loading .play-core::after {
-    content: ""; position: absolute; width: 34%; aspect-ratio: 1; border-radius: 50%;
-    border: 2.5px solid rgba(255, 255, 255, .35); border-top-color: #fff;
-    animation: spin .8s linear infinite;
-  }
-  .play-core { position: relative; }
-  @keyframes spin { to { transform: rotate(360deg); } }
-  @keyframes playRing {
-    0%   { transform: scale(1);    opacity: .85; }
-    100% { transform: scale(1.45); opacity: 0; }
-  }
-
-  .video-chip {
-    position: absolute; z-index: 1; left: clamp(10px, 1.6vw, 16px); bottom: clamp(10px, 1.6vw, 14px);
-    display: inline-flex; align-items: center; gap: 8px;
-    padding: 6px 12px 6px 10px; border-radius: 999px;
-    font-size: clamp(11.5px, .68rem + .15vw, 13px); font-weight: 600; letter-spacing: .2px; color: #fff;
-    background: rgba(5, 10, 28, .55);
-    border: 1px solid rgba(255, 255, 255, .16);
-    -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
-  }
-  .chip-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--blue-hi); box-shadow: 0 0 0 3px rgba(90, 155, 255, .25); }
-
   .video-placeholder {
     position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px;
     color: var(--faint); font-size: clamp(12px, .7rem + .2vw, 14px); text-align: center; padding: 16px;
@@ -563,8 +491,8 @@ const STEPS = [
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const QCOUNT = STEPS.filter(s => s.num).length;
 const IS_TOUCH = window.matchMedia("(pointer: coarse)").matches;
-// Safari (Mac) and every browser on iPhone/iPad block autoplay with sound → show the custom play button.
-// Add ?tapplay to the URL to preview this mode in any browser.
+// Safari (Mac) and every browser on iPhone/iPad never allow autoplay with sound, so there the video
+// waits for a tap on Vimeo's own play button. Add ?tapplay to the URL to preview this in any browser.
 const NEEDS_TAP_TO_PLAY = (() => {
   const ua = navigator.userAgent;
   const iOS = /iPad|iPhone|iPod/.test(ua) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
@@ -683,26 +611,15 @@ function videoHTML(step) {
   return `<div class="video video-slot" data-step="${step.id}"></div>`;
 }
 
-/* ---------- Video players: kept alive + preloaded so videos start instantly ---------- */
+/* ---------- Video players: kept alive + preloaded so they start quickly ---------- */
 // Players live in #videoLayer, which is never re-rendered (moving an iframe would reload it).
 // Each page renders an empty .video-slot and the layer is positioned exactly over it.
+// Sound: a player is never muted. Browsers that allow sound after the "Let's start" click
+// (Chrome, Edge, Firefox, Android) start the video automatically; on Safari/iOS the visitor
+// taps Vimeo's own play button, which plays with sound.
 const layer = $("#videoLayer");
 const players = new Map(); // step id -> player record
 let activeVp = null;
-const wait = ms => new Promise(r => setTimeout(r, ms));
-const PLAY_ICON = `<svg viewBox="0 0 24 24" fill="#fff"><path d="M7.5 4.8v14.4c0 .8.9 1.3 1.6.9l11.2-7.2c.6-.4.6-1.4 0-1.8L9.1 3.9c-.7-.4-1.6.1-1.6.9z"/></svg>`;
-
-const posterCache = new Map();
-function loadPoster(id) {
-  if (!posterCache.has(id)) {
-    posterCache.set(id,
-      fetch(`https://vimeo.com/api/oembed.json?url=${encodeURIComponent("https://vimeo.com/" + id)}&width=1280`)
-        .then(r => (r.ok ? r.json() : null))
-        .then(d => d && { thumb: d.thumbnail_url, duration: d.duration })
-        .catch(() => null));
-  }
-  return posterCache.get(id);
-}
 
 let vimeoSDK = null;
 function vimeoApi() {
@@ -723,103 +640,61 @@ function vimeoApi() {
 
 function getPlayer(step) {
   if (players.has(step.id)) return players.get(step.id);
-  const src = vimeoEmbedUrl(step.video);
-  const verb = IS_TOUCH ? "Tap" : "Click";
   const el = document.createElement("div");
   el.className = "vp";
-  el.innerHTML = `
-    <iframe src="${esc(src)}" title="${esc(step.title)} – video" allow="autoplay; fullscreen; picture-in-picture; clipboard-write"></iframe>
-    <button type="button" class="video-cover is-hidden" aria-label="Play video" tabindex="-1">
-      <span class="play-btn"><span class="play-core">${PLAY_ICON}</span></span>
-      <span class="video-chip"><span class="chip-dot"></span><span class="chip-text">${verb} to play</span></span>
-    </button>`;
+  el.innerHTML = `<iframe src="${esc(vimeoEmbedUrl(step.video))}" title="${esc(step.title)} – video"
+    allow="autoplay; fullscreen; picture-in-picture; clipboard-write"></iframe>`;
   layer.appendChild(el);
 
-  const vp = { step, el, iframe: el.querySelector("iframe"), cover: el.querySelector(".video-cover"),
-               player: null, priming: false, primed: false, wantPlay: false };
+  const vp = { step, el, iframe: el.querySelector("iframe"), player: null, wantPlay: false };
   players.set(step.id, vp);
 
-  loadPoster(src.match(/video\/(\d+)/)[1]).then(info => {
-    if (!info) return;
-    if (info.thumb) {
-      const img = new Image();
-      img.onload = () => { vp.cover.style.backgroundImage = `url("${info.thumb}")`; vp.cover.classList.add("poster-ready"); };
-      img.src = info.thumb;
-    }
-    if (info.duration) {
-      vp.cover.querySelector(".chip-text").textContent =
-        `${verb} to play · ${Math.floor(info.duration / 60)}:${String(info.duration % 60).padStart(2, "0")}`;
-    }
-  });
-
-  vp.cover.addEventListener("click", () => playFromCover(vp));
-
-  vimeoApi()
+  vp.ready = vimeoApi()
     .then(Vimeo => {
       vp.player = new Vimeo.Player(vp.iframe);
-      vp.player.on("play", () => { if (!vp.priming) hideCover(vp); });
       return vp.player.ready();
     })
-    .then(() => primePlayer(vp))
-    .catch(() => {}); // API blocked: Vimeo's own controls still work
+    // Sound on + full volume while paused (always allowed). This also clears a "muted"
+    // preference Vimeo may have remembered, so its own play button plays with sound.
+    .then(() => Promise.all([vp.player.setMuted(false), vp.player.setVolume(1)]).catch(() => {}))
+    .then(() => vp.player)
+    .catch(() => null); // API blocked: Vimeo's own controls still work
   return vp;
 }
 
-// Buffer the first moment silently, then rewind. Afterwards play() starts within milliseconds.
-async function primePlayer(vp) {
-  const p = vp.player;
-  vp.priming = true;
-  try {
-    await p.setMuted(true);
-    await Promise.race([p.play(), wait(8000)]);
-    if (vp.wantPlay) {
-      // the visitor is already on this page – keep going, from the start, with sound
-      await p.setCurrentTime(0);
-      await p.setVolume(1);
-      await p.setMuted(false);
-      vp.priming = false;
-      vp.primed = true;
-      return;
-    }
-    await p.pause();
-    await p.setCurrentTime(0);
-  } catch (e) {}
-  try { await p.setMuted(false); await p.setVolume(1); } catch (e) {}
-  vp.priming = false;
-  vp.primed = true;
-  if (vp.wantPlay && activeVp === vp) startPlayer(vp).catch(() => showCover(vp));
-}
-
-function startPlayer(vp) {
-  vp.player.setVolume(1).catch(() => {});
-  vp.player.setMuted(false).catch(() => {});
-  return vp.player.play();
-}
-
-function showCover(vp) { vp.cover.classList.remove("is-hidden", "is-loading"); vp.cover.tabIndex = 0; }
-function hideCover(vp) { vp.cover.classList.add("is-hidden"); vp.cover.classList.remove("is-loading"); vp.cover.tabIndex = -1; }
-
-// first view on browsers that allow sound (Chrome, Edge, Firefox, Android)
-function playNow(vp) {
-  hideCover(vp);
+// First view on browsers that may allow sound after the visitor has clicked on the page.
+// If the browser doesn't let it start, reset to Vimeo's normal play button (one tap plays with sound)
+// instead of leaving a player that looks like it's playing but is stuck at 0:00.
+function autoplayWithSound(vp) {
   vp.wantPlay = true;
-  if (vp.player && vp.primed) startPlayer(vp).catch(() => { vp.wantPlay = false; showCover(vp); });
-  // not primed yet → primePlayer() starts it the moment the player is ready
-}
-
-// custom play button (Safari, and revisited pages)
-function playFromCover(vp) {
-  vp.cover.classList.add("is-loading");
-  vp.wantPlay = true;
-  if (vp.player && vp.primed) startPlayer(vp).then(() => hideCover(vp), () => hideCover(vp));
-  // never leave the visitor stuck: shortly after, Vimeo's own controls take over
-  setTimeout(() => hideCover(vp), 1800);
+  vp.ready.then(p => {
+    if (!p || !vp.wantPlay || activeVp !== vp) return;
+    let progressed = false;
+    const onTime = () => { progressed = true; };
+    p.on("timeupdate", onTime);
+    p.play().catch(() => {});
+    setTimeout(async () => {
+      p.off("timeupdate", onTime);
+      if (!vp.wantPlay || activeVp !== vp) return;
+      try {
+        const [muted, t] = await Promise.all([p.getMuted(), p.getCurrentTime()]);
+        if (muted) {                         // never leave a silent video playing
+          await p.pause();
+          await p.setCurrentTime(0);
+          await p.setMuted(false);
+        } else if (!progressed && t === 0) {
+          // blocked or stuck → back to the player's initial state: thumbnail + Vimeo's play button
+          await p.unload().catch(() => p.pause());
+        }
+      } catch (e) {}
+    }, 3000);
+  });
 }
 
 function pauseActive() {
   if (!activeVp) return;
   activeVp.wantPlay = false;
-  if (activeVp.player && !activeVp.priming) activeVp.player.pause().catch(() => {});
+  if (activeVp.player) activeVp.player.pause().catch(() => {});
 }
 
 function syncVideos() {
@@ -832,7 +707,7 @@ function syncVideos() {
     if (vp.step === step) return;
     vp.el.classList.remove("is-active");
     vp.wantPlay = false;
-    if (vp.player && !vp.priming) vp.player.pause().catch(() => {});
+    if (vp.player) vp.player.pause().catch(() => {});
   });
   activeVp = null;
 
@@ -852,8 +727,7 @@ function syncVideos() {
       vp.el.classList.add("is-active");
       const firstView = !playedVideos.has(step.id);
       playedVideos.add(step.id);
-      if (firstView && !NEEDS_TAP_TO_PLAY) playNow(vp);
-      else showCover(vp);
+      if (firstView && !NEEDS_TAP_TO_PLAY) autoplayWithSound(vp);
     }
   }
   placeVideoLayer();
