@@ -15,7 +15,6 @@
     --navy-950: #050A1C;
     --navy-900: #081130;
     --navy-800: #0C1840;
-    --navy-700: #132256;
     --blue: #2B7BFF;
     --blue-hi: #5A9BFF;
     --blue-soft: rgba(43, 123, 255, .10);
@@ -23,14 +22,21 @@
     --white: #FFFFFF;
     --text: #F4F7FF;
     --muted: rgba(226, 234, 255, .68);
-    --faint: rgba(226, 234, 255, .40);
+    --faint: rgba(226, 234, 255, .42);
     --line: rgba(255, 255, 255, .10);
     --error: #FF7A8A;
     --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     --ease: cubic-bezier(.2, .8, .2, 1);
+
+    /* one layout for every screen – only these scale */
+    --col: 700px;
+    --gutter: clamp(16px, 4vw, 32px);
+    --topbar: calc(56px + env(safe-area-inset-top, 0px));
+    --footer: calc(72px + env(safe-area-inset-bottom, 0px));
   }
 
   * { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
   html, body { height: 100%; margin: 0; }
   body {
     font-family: var(--font);
@@ -45,8 +51,8 @@
   .bg {
     position: fixed; inset: 0; z-index: 0; pointer-events: none;
     background:
-      radial-gradient(900px 600px at 88% -12%, rgba(43, 123, 255, .26), transparent 62%),
-      radial-gradient(700px 520px at -12% 112%, rgba(43, 123, 255, .14), transparent 60%),
+      radial-gradient(900px 600px at 88% -12%, rgba(43, 123, 255, .24), transparent 62%),
+      radial-gradient(700px 520px at -12% 112%, rgba(43, 123, 255, .13), transparent 60%),
       linear-gradient(180deg, var(--navy-900), var(--navy-950));
   }
   .bg::after {
@@ -57,119 +63,140 @@
             mask-image: radial-gradient(ellipse at 50% 30%, #000 10%, transparent 70%);
   }
 
-  /* ---------- Chrome ---------- */
-  .progress { position: fixed; top: 0; left: 0; right: 0; height: 4px; background: rgba(255, 255, 255, .06); z-index: 30; }
+  /* ---------- Top bar & progress ---------- */
+  .progress { position: fixed; top: 0; left: 0; right: 0; height: 3px; background: rgba(255, 255, 255, .06); z-index: 40; }
   .progress-bar {
     height: 100%; width: 0;
     background: linear-gradient(90deg, var(--blue), var(--blue-hi));
-    box-shadow: 0 0 14px rgba(43, 123, 255, .6);
+    box-shadow: 0 0 12px rgba(43, 123, 255, .6);
     transition: width .6s var(--ease);
   }
   .topbar {
-    position: fixed; top: 4px; left: 0; right: 0; z-index: 20;
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 14px clamp(16px, 4vw, 32px);
-    background: linear-gradient(180deg, rgba(5, 10, 28, .92) 40%, rgba(5, 10, 28, 0));
-    pointer-events: none;
+    position: fixed; top: 0; left: 0; right: 0; z-index: 30;
+    height: var(--topbar); padding: env(safe-area-inset-top, 0px) var(--gutter) 0;
+    background: rgba(5, 10, 28, .88);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    border-bottom: 1px solid var(--line);
   }
-  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; letter-spacing: .2px; }
+  .bar-inner { max-width: var(--col); height: 100%; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; min-width: 0; font-weight: 700; font-size: clamp(13px, .78rem + .2vw, 15px); }
+  .brand-name { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .brand-mark {
-    width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
+    flex: none; width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
     background: linear-gradient(135deg, var(--blue), #1846C9);
-    box-shadow: 0 4px 16px rgba(43, 123, 255, .45);
-    font-size: 11px; font-weight: 800; color: #fff; letter-spacing: .5px;
+    box-shadow: 0 4px 14px rgba(43, 123, 255, .45);
+    font-size: 10.5px; font-weight: 800; color: #fff; letter-spacing: .4px;
   }
   .save-status {
-    display: flex; align-items: center; gap: 7px;
+    margin-left: auto; flex: none; display: flex; align-items: center; gap: 7px;
     font-size: 12px; color: var(--faint); opacity: 0; transition: opacity .3s;
   }
   .save-status.show { opacity: 1; }
   .save-status .dot { width: 7px; height: 7px; border-radius: 50%; background: #3DDC97; }
   .save-status.warn .dot { background: #FFB547; }
 
-  .stage { position: fixed; inset: 0; z-index: 5; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  /* ---------- Stage ---------- */
+  .stage { position: fixed; inset: 0; z-index: 5; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; }
   .screen {
     min-height: 100%;
-    display: flex; align-items: center; justify-content: center;
-    padding: 88px clamp(18px, 5vw, 40px) 112px;
+    display: flex; flex-direction: column; align-items: center;
+    padding: calc(var(--topbar) + clamp(18px, 3.5vh, 36px)) var(--gutter) calc(var(--footer) + clamp(20px, 4vh, 40px));
   }
-  .inner { width: 100%; max-width: 720px; }
+  .inner { width: 100%; max-width: var(--col); margin-block: auto; }
 
+  /* ---------- Bottom bar ---------- */
   .footer {
-    position: fixed; right: clamp(14px, 3vw, 28px); bottom: clamp(14px, 3vw, 24px); z-index: 20;
-    display: flex; align-items: center; gap: 14px;
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
+    height: var(--footer); padding: 0 var(--gutter) env(safe-area-inset-bottom, 0px);
+    background: rgba(5, 10, 28, .92);
+    -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+    border-top: 1px solid var(--line);
   }
   .footer[hidden] { display: none; }
-  .step-count { font-size: 13px; color: var(--faint); }
-  .nav { display: flex; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px -10px rgba(43, 123, 255, .8); }
+  .footer .bar-inner { gap: 12px; }
+  .footer-ok { flex: 1 1 auto; justify-content: center; max-width: 260px; }
+  .footer-hint { font-size: 13px; color: var(--faint); white-space: nowrap; }
+  .footer-hint b { color: var(--muted); font-weight: 600; }
+  .step-count { margin-left: auto; font-size: 13px; color: var(--faint); white-space: nowrap; }
+  .nav { flex: none; display: flex; border-radius: 10px; overflow: hidden; }
   .nav button {
-    width: 42px; height: 38px; border: 0; cursor: pointer;
+    width: 44px; height: 44px; border: 0; cursor: pointer;
     background: var(--blue); color: #fff; display: grid; place-items: center;
     transition: background .15s;
   }
   .nav button + button { border-left: 1px solid rgba(5, 10, 28, .35); }
-  @media (hover: hover) { .nav button:hover:not(:disabled) { background: #3F88FF; } }
   .nav button:disabled { background: #1C3A78; color: rgba(255, 255, 255, .45); cursor: default; }
 
-  /* ---------- Video ---------- */
+  /* ---------- Video card ---------- */
   .video {
-    position: relative;
-    width: min(100%, calc(46vh * 16 / 9));
-    aspect-ratio: 16 / 9;
-    border-radius: 16px; overflow: hidden;
+    position: relative; width: 100%; aspect-ratio: 16 / 9;
+    border-radius: clamp(12px, 1.8vw, 18px); overflow: hidden;
     background: var(--navy-800);
     border: 1px solid var(--line);
     box-shadow: 0 24px 60px -24px rgba(0, 0, 0, .7), 0 0 0 1px rgba(43, 123, 255, .08);
-    margin-bottom: 30px;
+    margin-bottom: clamp(20px, 3.5vh, 32px);
   }
+  @supports not (aspect-ratio: 16 / 9) { .video { height: 0; padding-top: 56.25%; } }
   .video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
   .video-placeholder {
     position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px;
-    color: var(--faint); font-size: 13px; text-align: center; padding: 16px;
+    color: var(--faint); font-size: clamp(12px, .7rem + .2vw, 14px); text-align: center; padding: 16px;
     background: radial-gradient(circle at 50% 45%, rgba(43, 123, 255, .18), transparent 60%);
   }
   .play {
-    width: 62px; height: 62px; border-radius: 50%; background: var(--blue);
-    display: grid; place-items: center; box-shadow: 0 0 0 10px rgba(43, 123, 255, .14);
+    width: clamp(48px, 7vw, 64px); height: clamp(48px, 7vw, 64px); border-radius: 50%; background: var(--blue);
+    display: grid; place-items: center; box-shadow: 0 0 0 clamp(7px, 1vw, 10px) rgba(43, 123, 255, .14);
   }
 
   /* ---------- Question ---------- */
   .q-meta {
-    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
-    color: var(--blue-hi); font-size: 12.5px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase;
+    display: flex; align-items: center; gap: 8px; margin-bottom: clamp(8px, 1.2vh, 12px);
+    color: var(--blue-hi); font-size: clamp(11px, .62rem + .22vw, 13px); font-weight: 700; letter-spacing: .7px; text-transform: uppercase;
   }
   .q-num {
     min-width: 24px; height: 24px; padding: 0 7px; border-radius: 6px;
-    display: grid; place-items: center; background: rgba(43, 123, 255, .16); color: var(--blue-hi);
-    font-size: 12px;
+    display: grid; place-items: center; background: rgba(43, 123, 255, .16); font-size: 12px;
   }
   .q-title {
-    margin: 0 0 10px; font-size: clamp(22px, 3.2vw, 30px); line-height: 1.3; font-weight: 600; letter-spacing: -.01em; color: var(--white);
+    margin: 0 0 8px; color: var(--white); font-weight: 600; letter-spacing: -.01em; line-height: 1.3;
+    font-size: clamp(20px, 1rem + 1.4vw, 30px);
   }
-  .q-title .req { color: var(--blue-hi); }
-  .q-help { margin: 0; color: var(--muted); font-size: clamp(15px, 1.8vw, 17px); line-height: 1.55; }
-  .answer { margin-top: 26px; }
+  .req { color: var(--blue-hi); }
+  .q-help { margin: 0; color: var(--muted); line-height: 1.55; font-size: clamp(14.5px, .82rem + .3vw, 17px); }
+  .answer { margin-top: clamp(18px, 3vh, 28px); }
 
   .text-input {
     width: 100%; display: block;
     background: transparent; border: 0; outline: none; border-radius: 0;
     border-bottom: 2px solid var(--blue-line);
-    color: var(--white); font: inherit; font-size: clamp(20px, 2.6vw, 26px); line-height: 1.45;
+    color: var(--white); font: inherit; line-height: 1.45;
+    font-size: clamp(17px, .95rem + .6vw, 23px);
     padding: 8px 0 10px; transition: border-color .2s; caret-color: var(--blue-hi);
   }
-  .text-input::placeholder { color: rgba(226, 234, 255, .26); }
+  .text-input::placeholder { color: rgba(226, 234, 255, .28); }
   .text-input:focus { border-bottom-color: var(--blue); }
   textarea.text-input { resize: none; min-height: 52px; overflow: hidden; }
+  .input-note { margin: 10px 0 0; font-size: 13px; color: var(--faint); }
 
-  .choices { display: flex; flex-direction: column; gap: 10px; max-width: 580px; }
+  /* details (name / batch / phone) */
+  .fields { display: grid; gap: clamp(20px, 3.2vh, 28px); }
+  .field-label {
+    display: block; margin-bottom: 2px;
+    font-size: clamp(13px, .76rem + .18vw, 14.5px); font-weight: 600; color: var(--muted); letter-spacing: .2px;
+  }
+  .field-error { display: none; margin-top: 8px; font-size: 13.5px; font-weight: 500; color: var(--error); }
+  .field.invalid .text-input { border-bottom-color: var(--error); }
+  .field.invalid .field-error { display: block; }
+
+  /* choices */
+  .choices { display: flex; flex-direction: column; gap: clamp(8px, 1.2vh, 10px); }
   .choice {
-    display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
-    font-size: 16px; color: var(--text); line-height: 1.4;
+    display: flex; align-items: center; gap: 12px; width: 100%; min-height: 48px; text-align: left;
+    font-size: clamp(14.5px, .84rem + .22vw, 16.5px); color: var(--text); line-height: 1.4;
     background: var(--blue-soft); border: 1px solid var(--blue-line); border-radius: 10px;
-    padding: 11px 14px; cursor: pointer;
+    padding: clamp(10px, 1.3vw, 12px) clamp(12px, 1.6vw, 16px); cursor: pointer;
     transition: background .15s, border-color .15s, transform .12s, opacity .15s;
   }
-  @media (hover: hover) { .choice:hover { background: rgba(43, 123, 255, .20); border-color: rgba(90, 155, 255, .62); } }
   .choice:active { transform: scale(.99); }
   .choice:focus-visible { outline: 2px solid var(--blue-hi); outline-offset: 2px; }
   .choice .key {
@@ -191,27 +218,29 @@
   }
   .choice-note { margin-top: 12px; font-size: 13.5px; color: var(--faint); }
 
-  .actions { display: flex; align-items: center; gap: 14px; margin-top: 28px; }
-  .actions[hidden] { display: none; }
+  /* buttons */
   .btn {
     display: inline-flex; align-items: center; gap: 8px;
     font-size: 16px; font-weight: 700; color: #fff; background: var(--blue);
-    border: 0; border-radius: 10px; padding: 12px 22px; cursor: pointer;
-    box-shadow: 0 10px 26px -10px rgba(43, 123, 255, .9);
+    border: 0; border-radius: 10px; min-height: 44px; padding: 11px 22px; cursor: pointer;
+    box-shadow: 0 10px 26px -12px rgba(43, 123, 255, .9);
     transition: background .15s, transform .15s, box-shadow .15s;
   }
-  @media (hover: hover) { .btn:hover { background: #3F88FF; transform: translateY(-1px); box-shadow: 0 14px 30px -10px rgba(43, 123, 255, .95); } }
-  .btn:active { transform: translateY(0); }
+  .btn:active { transform: translateY(0) scale(.99); }
   .btn:focus-visible { outline: 2px solid var(--white); outline-offset: 3px; }
-  .btn-lg { font-size: 18px; padding: 15px 30px; border-radius: 12px; }
-  .hint { font-size: 13px; color: var(--faint); }
-  .hint b { color: var(--muted); font-weight: 600; }
-  .link-btn { background: none; border: 0; color: var(--muted); font-size: 14px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; padding: 6px; }
-  .link-btn:hover { color: var(--white); }
+  .btn-lg { font-size: clamp(16px, .9rem + .3vw, 18px); min-height: 52px; padding: 14px 30px; border-radius: 12px; }
+  .link-btn { background: none; border: 0; color: var(--muted); font-size: 14px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; padding: 8px; }
+
+  @media (hover: hover) {
+    .choice:hover { background: rgba(43, 123, 255, .20); border-color: rgba(90, 155, 255, .62); }
+    .btn:hover { background: #3F88FF; transform: translateY(-1px); }
+    .nav button:hover:not(:disabled) { background: #3F88FF; }
+    .link-btn:hover { color: var(--white); }
+  }
 
   .error {
     display: none; align-items: center; gap: 8px; margin-top: 14px;
-    width: fit-content; padding: 7px 12px; border-radius: 8px;
+    width: fit-content; max-width: 100%; padding: 8px 12px; border-radius: 8px;
     background: rgba(255, 122, 138, .12); color: var(--error); font-size: 14px; font-weight: 500;
   }
   .error.show { display: flex; }
@@ -222,23 +251,24 @@
   }
 
   /* ---------- Welcome / Thank you ---------- */
-  .center { text-align: center; max-width: 660px; margin: 0 auto; }
+  .center { text-align: center; }
   .eyebrow {
-    display: inline-flex; align-items: center; gap: 8px; margin-bottom: 22px;
+    display: inline-flex; align-items: center; gap: 8px; margin-bottom: clamp(16px, 3vh, 24px);
     padding: 7px 14px; border-radius: 999px;
     border: 1px solid var(--blue-line); background: var(--blue-soft);
-    color: var(--blue-hi); font-size: 13px; font-weight: 600;
+    color: var(--blue-hi); font-size: clamp(12px, .7rem + .2vw, 13.5px); font-weight: 600;
   }
-  .eyebrow .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--blue-hi); box-shadow: 0 0 0 0 rgba(90, 155, 255, .7); animation: pulse 2s infinite; }
-  @keyframes pulse { 70% { box-shadow: 0 0 0 9px rgba(90, 155, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(90, 155, 255, 0); } }
-  .hero-title { margin: 0 0 14px; font-size: clamp(34px, 6vw, 58px); line-height: 1.08; font-weight: 800; letter-spacing: -.025em; color: var(--white); }
+  .eyebrow .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--blue-hi); animation: pulse 2s infinite; }
+  @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(90, 155, 255, .7); } 70%, 100% { box-shadow: 0 0 0 9px rgba(90, 155, 255, 0); } }
+  .hero-title { margin: 0 0 clamp(10px, 2vh, 16px); color: var(--white); font-weight: 800; letter-spacing: -.025em; line-height: 1.1; font-size: clamp(32px, 1.2rem + 4vw, 58px); }
   .hero-title .accent { background: linear-gradient(90deg, var(--blue-hi), var(--blue)); -webkit-background-clip: text; background-clip: text; color: transparent; }
-  .hero-sub { margin: 0 auto 30px; max-width: 520px; color: var(--muted); font-size: clamp(16px, 2vw, 19px); line-height: 1.55; }
-  .hero-meta { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; margin-top: 22px; color: var(--faint); font-size: 13.5px; }
+  .hero-sub { margin: 0 auto clamp(24px, 4vh, 32px); max-width: 520px; color: var(--muted); line-height: 1.55; font-size: clamp(15.5px, .88rem + .35vw, 19px); }
+  .hero-actions { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+  .hero-actions .btn-lg { width: min(100%, 320px); justify-content: center; }
+  .hero-meta { display: flex; justify-content: center; flex-wrap: wrap; gap: 8px 20px; margin-top: clamp(18px, 3vh, 24px); color: var(--faint); font-size: 13.5px; }
   .hero-meta span { display: inline-flex; align-items: center; gap: 6px; }
-  .hero-actions { display: flex; flex-direction: column; align-items: center; gap: 12px; }
 
-  .done-icon { width: 92px; height: 92px; margin: 0 auto 26px; border-radius: 50%; display: grid; place-items: center; background: var(--blue); box-shadow: 0 0 0 14px rgba(43, 123, 255, .14), 0 20px 50px -10px rgba(43, 123, 255, .8); }
+  .done-icon { width: clamp(76px, 10vw, 92px); height: clamp(76px, 10vw, 92px); margin: 0 auto clamp(20px, 3vh, 26px); border-radius: 50%; display: grid; place-items: center; background: var(--blue); box-shadow: 0 0 0 14px rgba(43, 123, 255, .14), 0 20px 50px -10px rgba(43, 123, 255, .8); }
   .done-icon path { stroke-dasharray: 40; stroke-dashoffset: 40; animation: draw .6s .35s var(--ease) forwards; }
   @keyframes draw { to { stroke-dashoffset: 0; } }
 
@@ -257,54 +287,23 @@
   @keyframes leaveUp   { to { opacity: 0; transform: translateY(-40px); } }
   @keyframes leaveDown { to { opacity: 0; transform: translateY(40px); } }
 
-  .footer-ok { display: none; }
-
-  /* ---------- Mobile ---------- */
-  @media (max-width: 640px) {
-    .topbar {
-      padding: 10px 16px;
-      background: rgba(5, 10, 28, .9);
-      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-      border-bottom: 1px solid var(--line);
-    }
-    .brand { font-size: 13px; gap: 8px; }
-    .brand-mark { width: 24px; height: 24px; border-radius: 7px; font-size: 10px; }
-    .save-status { font-size: 11px; }
-
-    .screen { align-items: flex-start; padding: 68px 16px calc(96px + env(safe-area-inset-bottom)); }
-    .center { padding-top: 7vh; }
-    .hero-sub { font-size: 16px; margin-bottom: 26px; }
-    .hero-actions, .hero-actions .actions { width: 100%; }
-    .btn-lg { width: 100%; justify-content: center; }
-    .hero-meta { flex-direction: column; align-items: center; gap: 8px; }
-
-    .video { width: 100%; border-radius: 12px; margin-bottom: 20px; }
-    .play { width: 52px; height: 52px; box-shadow: 0 0 0 8px rgba(43, 123, 255, .14); }
-    .q-meta { font-size: 11.5px; margin-bottom: 8px; }
-    .q-num { min-width: 22px; height: 22px; font-size: 11px; }
-    .q-title { font-size: 21px; margin-bottom: 8px; }
-    .q-help { font-size: 15px; }
-    .answer { margin-top: 18px; }
-    .text-input { font-size: 20px; }
-    .choices { gap: 8px; }
-    .choice { font-size: 15px; gap: 12px; padding: 12px; min-height: 50px; }
-    .choice .key { width: 24px; height: 24px; font-size: 11px; }
-
-    /* OK button moves into a fixed bottom bar */
-    .inner > .actions { display: none; }
-    .footer {
-      left: 0; right: 0; bottom: 0; gap: 10px;
-      padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
-      background: rgba(5, 10, 28, .94);
-      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
-      border-top: 1px solid var(--line);
-    }
-    .footer-ok { display: inline-flex; flex: 1; justify-content: center; padding: 13px 18px; }
-    .step-count { font-size: 12px; white-space: nowrap; }
-    .nav { box-shadow: none; }
-    .nav button { width: 44px; height: 46px; }
+  /* ---------- Small-screen & device tweaks ---------- */
+  @media (max-width: 600px) {
+    .footer-ok { max-width: none; }
+    .footer-hint { display: none; }
+    .step-count { font-size: 12px; }
   }
-  @media (pointer: coarse) { .hint { display: none; } }
+  @media (max-width: 360px) {
+    .brand-mark { width: 24px; height: 24px; font-size: 9.5px; }
+    .choice .key { width: 22px; height: 22px; font-size: 11px; }
+  }
+  @media (hover: none), (pointer: coarse) { .footer-hint { display: none; } }
+  /* phones held sideways: keep the video from filling the whole screen */
+  @media (orientation: landscape) and (max-height: 540px) {
+    :root { --topbar: calc(48px + env(safe-area-inset-top, 0px)); --footer: calc(62px + env(safe-area-inset-bottom, 0px)); }
+    .video { width: min(100%, calc((100vh - 150px) * 16 / 9)); margin-inline: auto; }
+    .nav button { height: 40px; }
+  }
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }
   }
@@ -315,40 +314,45 @@
   <div class="progress" aria-hidden="true"><div class="progress-bar" id="bar"></div></div>
 
   <header class="topbar">
-    <div class="brand"><span class="brand-mark">DB</span><span class="brand-name">Digital Business Bootcamp</span></div>
-    <div class="save-status" id="saveStatus" aria-live="polite"><span class="dot"></span><span id="saveText">Progress saved</span></div>
+    <div class="bar-inner">
+      <div class="brand"><span class="brand-mark">DB</span><span class="brand-name">Digital Business Bootcamp</span></div>
+      <div class="save-status" id="saveStatus" aria-live="polite"><span class="dot"></span><span id="saveText">Progress saved</span></div>
+    </div>
   </header>
 
   <main class="stage" id="stage">
     <section class="screen" id="screen"></section>
   </main>
 
-  <div class="footer" id="footer" hidden>
-    <button class="btn footer-ok" id="footerOk" type="button">OK</button>
-    <span class="step-count" id="stepCount"></span>
-    <nav class="nav" aria-label="Question navigation">
-      <button id="prevBtn" aria-label="Previous question">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
-      </button>
-      <button id="nextBtn" aria-label="Next question">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
-      </button>
-    </nav>
-  </div>
+  <footer class="footer" id="footer" hidden>
+    <div class="bar-inner">
+      <button class="btn footer-ok" id="footerOk" type="button">OK</button>
+      <span class="footer-hint">press <b>Enter ↵</b></span>
+      <span class="step-count" id="stepCount"></span>
+      <nav class="nav" aria-label="Question navigation">
+        <button id="prevBtn" type="button" aria-label="Previous question">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+        </button>
+        <button id="nextBtn" type="button" aria-label="Next question">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+        </button>
+      </nav>
+    </div>
+  </footer>
 
 <script>
 /* =====================================================================
-   1) SETTINGS  –  paste your Google Apps Script Web App URL below
+   1) SETTINGS
    ===================================================================== */
 const CONFIG = {
   SHEET_ENDPOINT: "https://script.google.com/macros/s/AKfycbyBMvXT-RkBTzURv3to4LqUhSjLvr3RlTvBrGiE_K8D5dmd1T8OV54Jgwgo_r0uDxLr/exec",
-  STORAGE_KEY: "dbb-business-form-v1",
+  STORAGE_KEY: "dbb-business-form-v2",
   FORM_NAME: "Digital Business Bootcamp – Business Understanding Form",
 };
 
 /* =====================================================================
-   2) QUESTIONS
-   - type:  "short" | "phone" | "long" | "single" | "multi"
+   2) PAGES
+   - type:  "details" | "long" | "single" | "multi"
    - video: paste the Vimeo link (e.g. https://vimeo.com/123456789
             or https://vimeo.com/123456789/abc123def for unlisted videos).
             Leave "" to show no video on that page.
@@ -356,19 +360,15 @@ const CONFIG = {
    ===================================================================== */
 const STEPS = [
   {
-    id: "name", sheet: "Name", type: "short", video: "",
-    title: "What's your name?",
-    placeholder: "Type your full name", minLength: 2,
-  },
-  {
-    id: "batch", sheet: "Batch Number", type: "short", video: "",
-    title: "What is your batch number?",
-    placeholder: "Type your batch number",
-  },
-  {
-    id: "phone", sheet: "Phone Number", type: "phone", video: "",
-    title: "What is your phone number?",
-    placeholder: "e.g. +91 98765 43210",
+    id: "details", type: "details", sheet: "Contact Details",
+    video: "PASTE_VIMEO_LINK_INTRO",
+    title: "Let's start with your details",
+    help: "Watch the short video, then fill in your details below.",
+    fields: [
+      { id: "name",  label: "Name",         sheet: "Name",         placeholder: "Type your full name", minLength: 2, autocomplete: "name" },
+      { id: "batch", label: "Batch Number", sheet: "Batch Number", placeholder: "Type your batch number" },
+      { id: "phone", label: "Phone Number", sheet: "Phone Number", placeholder: "e.g. +91 98765 43210", type: "phone", autocomplete: "tel" },
+    ],
   },
   {
     id: "q1", num: 1, sheet: "Q1. Current Business Stage", type: "single",
@@ -465,6 +465,10 @@ const STEPS = [
 const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
 const QCOUNT = STEPS.filter(s => s.num).length;
 const IS_TOUCH = window.matchMedia("(pointer: coarse)").matches;
+// one Google Sheet column per answer (details page = 3 columns)
+const SHEET_FIELDS = STEPS.flatMap(s => s.type === "details"
+  ? s.fields.map(f => ({ id: f.id, sheet: f.sheet }))
+  : [{ id: s.id, sheet: s.sheet }]);
 
 const $ = sel => document.querySelector(sel);
 const stage = $("#stage"), screen = $("#screen"), bar = $("#bar");
@@ -496,7 +500,11 @@ function persist() {
   try { localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
 }
 const hasValue = v => Array.isArray(v) ? v.length > 0 : (v != null && String(v).trim() !== "");
-const answeredCount = () => STEPS.filter(s => hasValue(state.answers[s.id])).length;
+const stepAnswered = s => s.type === "details"
+  ? s.fields.every(f => hasValue(state.answers[f.id]))
+  : hasValue(state.answers[s.id]);
+const answeredCount = () => STEPS.filter(stepAnswered).length;
+const firstName = () => hasValue(state.answers.name) ? String(state.answers.name).trim().split(/\s+/)[0] : "";
 
 /* ---------- Helpers ---------- */
 function esc(str) {
@@ -504,12 +512,16 @@ function esc(str) {
 }
 function vimeoEmbedUrl(url) {
   if (!url) return null;
-  let m = url.match(/player\.vimeo\.com\/video\/(\d+)(?:[^#]*?[?&]h=([a-z0-9]+))?/i)
-       || url.match(/vimeo\.com\/(?:[^?#]*?\/)?(\d{6,})(?:\/([a-z0-9]{6,}))?/i);
+  const m = url.match(/player\.vimeo\.com\/video\/(\d+)(?:[^#]*?[?&]h=([a-z0-9]+))?/i)
+         || url.match(/vimeo\.com\/(?:[^?#]*?\/)?(\d{6,})(?:\/([a-z0-9]{6,}))?/i);
   if (!m) return null;
   const params = new URLSearchParams({ title: "0", byline: "0", portrait: "0", dnt: "1", color: "2B7BFF" });
   if (m[2]) params.set("h", m[2]);
   return `https://player.vimeo.com/video/${m[1]}?${params}`;
+}
+function shake(el) {
+  if (!el) return;
+  el.classList.remove("shake"); void el.offsetWidth; el.classList.add("shake");
 }
 
 const ICON_ARROW = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
@@ -519,20 +531,17 @@ const ICON_ALERT = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" 
 /* ---------- Templates ---------- */
 function welcomeHTML() {
   const resuming = resumeIndex !== null;
-  const name = hasValue(state.answers.name) ? ", " + esc(String(state.answers.name).split(" ")[0]) : "";
+  const name = firstName();
   return `
   <div class="inner center">
     <div><span class="eyebrow"><span class="pulse"></span>Business Understanding Form</span></div>
-    <h1 class="hero-title">${resuming ? `Welcome back${name}` : `Digital Business <span class="accent">Bootcamp</span>`}</h1>
+    <h1 class="hero-title">${resuming ? `Welcome back${name ? ", " + esc(name) : ""}` : `Digital Business <span class="accent">Bootcamp</span>`}</h1>
     <p class="hero-sub">${resuming
-      ? `You've answered ${answeredCount()} of ${STEPS.length} questions. Pick up right where you left off.`
+      ? `You've completed ${answeredCount()} of ${STEPS.length} pages. Pick up right where you left off.`
       : `Help us understand you and your business so we can make this bootcamp truly useful for you.`}</p>
     <div class="hero-actions">
-      <div class="actions" style="margin-top:0">
-        <button class="btn btn-lg" id="startBtn">${resuming ? "Continue" : "Let's start"} ${ICON_ARROW}</button>
-        <span class="hint">press <b>Enter ↵</b></span>
-      </div>
-      ${resuming ? `<button class="link-btn" id="restartBtn">Start over</button>` : ""}
+      <button class="btn btn-lg" id="startBtn" type="button">${resuming ? "Continue" : "Let's start"} ${ICON_ARROW}</button>
+      ${resuming ? `<button class="link-btn" id="restartBtn" type="button">Start over</button>` : ""}
     </div>
     <div class="hero-meta">
       <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Takes about 5 minutes</span>
@@ -542,11 +551,11 @@ function welcomeHTML() {
 }
 
 function thanksHTML() {
-  const first = hasValue(state.answers.name) ? ", " + esc(String(state.answers.name).trim().split(" ")[0]) : "";
+  const name = firstName();
   return `
   <div class="inner center">
     <div class="done-icon"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
-    <h1 class="hero-title">Thank you${first}!</h1>
+    <h1 class="hero-title">Thank you${name ? ", " + esc(name) : ""}!</h1>
     <p class="hero-sub">Your responses have been submitted successfully. See you in the bootcamp.</p>
   </div>`;
 }
@@ -560,22 +569,29 @@ function videoHTML(step) {
       Video will appear here</div></div>`;
   }
   return `<div class="video"><iframe src="${esc(src)}" title="${esc(step.title)} – video"
-    allow="autoplay; fullscreen; picture-in-picture; clipboard-write" allowfullscreen loading="eager"></iframe></div>`;
+    allow="autoplay; fullscreen; picture-in-picture; clipboard-write" allowfullscreen></iframe></div>`;
 }
 
 function stepHTML(step) {
-  const saved = state.answers[step.id];
   const kicker = step.num
     ? `<span class="q-num">${step.num}</span>${ICON_ARROW}<span>Question ${step.num} of ${QCOUNT}</span>`
     : `${ICON_ARROW}<span>About you</span>`;
 
   let input = "";
-  if (step.type === "short" || step.type === "phone") {
-    input = `<input class="text-input" type="${step.type === "phone" ? "tel" : "text"}" enterkeyhint="next"
-      ${step.type === "phone" ? 'inputmode="tel" autocomplete="tel"' : step.id === "name" ? 'autocomplete="name"' : 'autocomplete="off"'}
-      placeholder="${esc(step.placeholder || "Type your answer here…")}" value="${esc(saved || "")}" aria-label="${esc(step.title)}" />`;
+  if (step.type === "details") {
+    input = `<div class="fields">${step.fields.map((f, n) => `
+      <div class="field" data-field="${f.id}">
+        <label class="field-label" for="f-${f.id}">${esc(f.label)} <span class="req">*</span></label>
+        <input id="f-${f.id}" class="text-input" data-id="${f.id}"
+          type="${f.type === "phone" ? "tel" : "text"}" ${f.type === "phone" ? 'inputmode="tel"' : ""}
+          autocomplete="${f.autocomplete || "off"}" enterkeyhint="${n === step.fields.length - 1 ? "done" : "next"}"
+          placeholder="${esc(f.placeholder || "")}" value="${esc(state.answers[f.id] || "")}" />
+        <div class="field-error"></div>
+      </div>`).join("")}
+    </div>`;
   } else if (step.type === "long") {
-    input = `<textarea class="text-input" rows="1" placeholder="${esc(step.placeholder || "Type your answer here…")}" aria-label="${esc(step.title)}">${esc(saved || "")}</textarea>`;
+    input = `<textarea class="text-input" rows="1" placeholder="${esc(step.placeholder || "Type your answer here…")}" aria-label="${esc(step.title)}">${esc(state.answers[step.id] || "")}</textarea>
+      ${IS_TOUCH ? "" : `<p class="input-note">Press <b>Shift + Enter</b> for a new line</p>`}`;
   } else {
     const multi = step.type === "multi";
     input = `<div class="choices" role="${multi ? "group" : "radiogroup"}" aria-label="${esc(step.title)}">
@@ -586,22 +602,14 @@ function stepHTML(step) {
     </div>${multi ? `<div class="choice-note" id="choiceNote"></div>` : ""}`;
   }
 
-  const enterHint = step.type === "long" ? "<b>Enter ↵</b> &nbsp;·&nbsp; <b>Shift + Enter</b> for new line" : "press <b>Enter ↵</b>";
-  const hideActions = step.type === "single" && !hasValue(saved);
-  const isLast = state.index === STEPS.length - 1;
-
   return `
   <div class="inner">
     ${videoHTML(step)}
     <div class="q-meta">${kicker}</div>
-    <h2 class="q-title">${esc(step.title)} <span class="req">*</span></h2>
+    <h2 class="q-title">${esc(step.title)}${step.type === "details" ? "" : ' <span class="req">*</span>'}</h2>
     ${step.help ? `<p class="q-help">${esc(step.help)}</p>` : ""}
     <div class="answer">${input}</div>
     <div class="error" role="alert">${ICON_ALERT}<span class="error-text"></span></div>
-    <div class="actions" ${hideActions ? "hidden" : ""}>
-      <button class="btn ok" type="button">${isLast ? "Submit" : "OK"} ${ICON_CHECK}</button>
-      <span class="hint">${enterHint}</span>
-    </div>
   </div>`;
 }
 
@@ -618,13 +626,12 @@ function render() {
 
 function updateChrome() {
   const i = state.index;
-  const pct = state.completed ? 100 : (answeredCount() / STEPS.length) * 100;
-  bar.style.width = pct + "%";
+  bar.style.width = (state.completed ? 100 : (answeredCount() / STEPS.length) * 100) + "%";
   const onStep = i >= 0 && i < STEPS.length;
   footer.hidden = !onStep;
   if (onStep) {
     prevBtn.disabled = i === 0;
-    nextBtn.disabled = !hasValue(state.answers[STEPS[i].id]);
+    nextBtn.disabled = !stepAnswered(STEPS[i]);
     stepCount.textContent = `${i + 1} of ${STEPS.length}`;
     footerOk.innerHTML = `${i === STEPS.length - 1 ? "Submit" : "OK"} ${ICON_CHECK}`;
   }
@@ -641,15 +648,17 @@ function bind() {
   if (i >= STEPS.length) return;
 
   const step = STEPS[i];
-  screen.querySelector(".ok").onclick = goNext;
 
-  const field = screen.querySelector(".text-input");
-  if (field) {
-    field.addEventListener("input", () => {
-      hideError();
-      if (field.tagName === "TEXTAREA") autoGrow(field);
-    });
-    if (field.tagName === "TEXTAREA") autoGrow(field);
+  if (step.type === "details") {
+    screen.querySelectorAll(".field .text-input").forEach(inp =>
+      inp.addEventListener("input", () => setFieldError(inp.dataset.id, "")));
+    return;
+  }
+
+  if (step.type === "long") {
+    const t = screen.querySelector("textarea");
+    t.addEventListener("input", () => { hideError(); autoGrow(t); });
+    autoGrow(t);
     return;
   }
 
@@ -661,7 +670,7 @@ function bind() {
   screen.querySelectorAll(".choice").forEach(btn => {
     btn.addEventListener("click", e => {
       if (busy) return;
-      if (e.detail > 0) btn.blur(); // mouse click: keep Enter free for "OK"
+      if (e.detail > 0) btn.blur(); // mouse/touch: keep Enter free for "OK"
       const opt = step.options[+btn.dataset.i];
       hideError();
       if (step.type === "single") {
@@ -705,16 +714,11 @@ function paintChoices(step) {
     btn.setAttribute("aria-checked", on);
     btn.classList.toggle("muted", !!(multi && step.max && !on && selected.length >= step.max));
   });
-  if (multi) {
-    const note = $("#choiceNote");
-    if (note) {
-      note.textContent = step.max
-        ? `${selected.length} of ${step.max} selected`
-        : selected.length ? `${selected.length} selected` : "Choose as many as you like";
-    }
-    screen.querySelector(".actions").hidden = false;
-  } else if (selected.length) {
-    screen.querySelector(".actions").hidden = false;
+  const note = $("#choiceNote");
+  if (multi && note) {
+    note.textContent = step.max
+      ? `${selected.length} of ${step.max} selected`
+      : selected.length ? `${selected.length} selected` : "Choose as many as you like";
   }
 }
 
@@ -725,7 +729,8 @@ function autoGrow(el) {
 
 function focusField() {
   if (IS_TOUCH) return; // don't pop the mobile keyboard over the video
-  const f = screen.querySelector(".text-input");
+  const inputs = [...screen.querySelectorAll(".text-input")];
+  const f = inputs.find(el => !el.value) || inputs[0];
   if (f) {
     f.focus({ preventScroll: true });
     const len = f.value.length;
@@ -757,26 +762,27 @@ function start() {
   resumeIndex = null;
 }
 
-function readValue(step) {
-  if (step.type === "single") return pick;
-  if (step.type === "multi") return pick.slice();
-  return screen.querySelector(".text-input").value.trim();
+function validateField(f, v) {
+  if (!v) return `Please enter your ${f.label.toLowerCase()}`;
+  if (f.type === "phone") {
+    const digits = v.replace(/\D/g, "");
+    if (digits.length < 10 || digits.length > 15 || !/^[+\d\s()-]+$/.test(v)) return "Please enter a valid phone number";
+  }
+  if (f.minLength && v.length < f.minLength) return `Please enter at least ${f.minLength} characters`;
+  return "";
+}
+
+function setFieldError(id, msg) {
+  const field = screen.querySelector(`.field[data-field="${id}"]`);
+  if (!field) return;
+  field.classList.toggle("invalid", !!msg);
+  field.querySelector(".field-error").textContent = msg;
 }
 
 function validate(step, v) {
-  switch (step.type) {
-    case "single": return v ? "" : "Please select an option";
-    case "multi":  return v.length ? "" : "Please select at least one option";
-    case "phone": {
-      const digits = v.replace(/\D/g, "");
-      if (!v) return "Please enter your phone number";
-      return digits.length >= 10 && digits.length <= 15 && /^[+\d\s()-]+$/.test(v) ? "" : "Please enter a valid phone number";
-    }
-    default:
-      if (!v) return "Please fill this in";
-      if (step.minLength && v.length < step.minLength) return `Please enter at least ${step.minLength} characters`;
-      return "";
-  }
+  if (step.type === "single") return v ? "" : "Please select an option";
+  if (step.type === "multi") return v.length ? "" : "Please select at least one option";
+  return v ? "" : "Please fill this in";
 }
 
 function goNext() {
@@ -787,12 +793,36 @@ function goNext() {
   if (i >= STEPS.length) return;
 
   const step = STEPS[i];
-  const value = readValue(step);
-  const err = validate(step, value);
-  if (err) return showError(err);
+  let updates;
 
-  const changed = JSON.stringify(state.answers[step.id]) !== JSON.stringify(value);
-  state.answers[step.id] = value;
+  if (step.type === "details") {
+    updates = {};
+    let firstBad = null;
+    step.fields.forEach(f => {
+      const el = screen.querySelector(`#f-${f.id}`);
+      const v = el.value.trim();
+      updates[f.id] = v;
+      const err = validateField(f, v);
+      setFieldError(f.id, err);
+      if (err && !firstBad) firstBad = el;
+    });
+    if (firstBad) {
+      shake(screen.querySelector(".answer"));
+      firstBad.focus({ preventScroll: true });
+      firstBad.scrollIntoView({ block: "center", behavior: "smooth" });
+      return;
+    }
+  } else {
+    const value = step.type === "single" ? pick
+      : step.type === "multi" ? pick.slice()
+      : screen.querySelector(".text-input").value.trim();
+    const err = validate(step, value);
+    if (err) return showError(err);
+    updates = { [step.id]: value };
+  }
+
+  const changed = Object.keys(updates).some(k => JSON.stringify(state.answers[k]) !== JSON.stringify(updates[k]));
+  Object.assign(state.answers, updates);
   const isLast = i === STEPS.length - 1;
   if (isLast) state.completed = true;
   if (changed || isLast) { state.seq++; state.pendingSync = true; }
@@ -811,9 +841,8 @@ function showError(msg) {
   if (!box) return;
   box.querySelector(".error-text").textContent = msg;
   box.classList.add("show");
-  const target = screen.querySelector(".answer");
-  target.classList.remove("shake"); void target.offsetWidth; target.classList.add("shake");
-  if (window.matchMedia("(max-width: 640px)").matches) box.scrollIntoView({ block: "center", behavior: "smooth" });
+  shake(screen.querySelector(".answer"));
+  box.scrollIntoView({ block: "nearest", behavior: "smooth" });
 }
 function hideError() {
   const box = screen.querySelector(".error");
@@ -831,9 +860,15 @@ document.addEventListener("keydown", e => {
   const tag = e.target.tagName;
 
   if (e.key === "Enter") {
-    if (tag === "BUTTON" || e.isComposing) return;          // native button behaviour
-    if (tag === "TEXTAREA" && (e.shiftKey || IS_TOUCH)) return; // new line
+    if (tag === "BUTTON" || e.isComposing) return;             // native button behaviour
+    if (tag === "TEXTAREA" && (e.shiftKey || IS_TOUCH)) return;  // new line
     e.preventDefault();
+    // details page: Enter moves to the next field first
+    if (tag === "INPUT" && e.target.closest(".field")) {
+      const inputs = [...screen.querySelectorAll(".field .text-input")];
+      const idx = inputs.indexOf(e.target);
+      if (idx > -1 && idx < inputs.length - 1) { inputs[idx + 1].focus(); return; }
+    }
     goNext();
     return;
   }
@@ -852,7 +887,7 @@ function endpointReady() {
 }
 
 function buildPayload() {
-  const last = [...STEPS].reverse().find(s => hasValue(state.answers[s.id]));
+  const last = [...STEPS].reverse().find(stepAnswered);
   return {
     formName: CONFIG.FORM_NAME,
     sessionId: state.sessionId,
@@ -862,9 +897,9 @@ function buildPayload() {
     lastAnswered: last ? last.sheet : "",
     startedAt: state.startedAt,
     device: IS_TOUCH ? "Mobile / Tablet" : "Desktop",
-    fields: STEPS.map(s => {
-      const v = state.answers[s.id];
-      return { label: s.sheet, value: Array.isArray(v) ? v.join(" | ") : (v || "") };
+    fields: SHEET_FIELDS.map(f => {
+      const v = state.answers[f.id];
+      return { label: f.sheet, value: Array.isArray(v) ? v.join(" | ") : (v || "") };
     }),
   };
 }
