@@ -260,7 +260,16 @@
   }
   .eyebrow .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--blue-hi); animation: pulse 2s infinite; }
   @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(90, 155, 255, .7); } 70%, 100% { box-shadow: 0 0 0 9px rgba(90, 155, 255, 0); } }
-  .hero-title { margin: 0 0 clamp(10px, 2vh, 16px); color: var(--white); font-weight: 800; letter-spacing: -.025em; line-height: 1.1; font-size: clamp(32px, 1.2rem + 4vw, 58px); }
+  .hero-thumb {
+    /* centred 16:9 card; shrinks on short screens so the Start button stays in view */
+    width: min(100%, 640px, max(240px, calc((100vh - 430px) * 16 / 9)));
+    margin: 0 auto clamp(20px, 3.5vh, 30px);
+    aspect-ratio: 16 / 9; border-radius: clamp(12px, 1.8vw, 18px); overflow: hidden;
+    background: var(--navy-800); border: 1px solid var(--line);
+    box-shadow: 0 30px 70px -28px rgba(43, 123, 255, .55), 0 0 0 1px rgba(43, 123, 255, .10);
+  }
+  .hero-thumb img { display: block; width: 100%; height: 100%; object-fit: cover; }
+  .hero-title { margin: 0 0 clamp(10px, 2vh, 16px); color: var(--white); font-weight: 800; letter-spacing: -.02em; line-height: 1.15; font-size: clamp(26px, 1rem + 2.6vw, 44px); }
   .hero-title .accent { background: linear-gradient(90deg, var(--blue-hi), var(--blue)); -webkit-background-clip: text; background-clip: text; color: transparent; }
   .hero-sub { margin: 0 auto clamp(24px, 4vh, 32px); max-width: 520px; color: var(--muted); line-height: 1.55; font-size: clamp(15.5px, .88rem + .35vw, 19px); }
   .hero-actions { display: flex; flex-direction: column; align-items: center; gap: 10px; }
@@ -534,8 +543,11 @@ function welcomeHTML() {
   const name = firstName();
   return `
   <div class="inner center">
-    <div><span class="eyebrow"><span class="pulse"></span>Business Understanding Form</span></div>
-    <h1 class="hero-title">${resuming ? `Welcome back${name ? ", " + esc(name) : ""}` : `Digital Business <span class="accent">Bootcamp</span>`}</h1>
+    <div class="hero-thumb">
+      <img src="thumbnail.jpg" srcset="thumbnail-720.jpg 720w, thumbnail.jpg 1344w" sizes="(max-width: 700px) 100vw, 640px"
+        width="1344" height="756" alt="Digital Business Bootcamp" fetchpriority="high" decoding="async" />
+    </div>
+    <h1 class="hero-title">${resuming ? `Welcome back${name ? ", " + esc(name) : ""}` : `Business Understanding <span class="accent">Form</span>`}</h1>
     <p class="hero-sub">${resuming
       ? `You've completed ${answeredCount()} of ${STEPS.length} pages. Pick up right where you left off.`
       : `Help us understand you and your business so we can make this bootcamp truly useful for you.`}</p>
