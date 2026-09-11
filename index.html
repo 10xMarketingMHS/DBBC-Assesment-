@@ -1,0 +1,928 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Digital Business Bootcamp – Business Understanding Form</title>
+<meta name="theme-color" content="#050A1C" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<link rel="preconnect" href="https://player.vimeo.com" />
+
+<style>
+  :root {
+    --navy-950: #050A1C;
+    --navy-900: #081130;
+    --navy-800: #0C1840;
+    --navy-700: #132256;
+    --blue: #2B7BFF;
+    --blue-hi: #5A9BFF;
+    --blue-soft: rgba(43, 123, 255, .10);
+    --blue-line: rgba(90, 155, 255, .34);
+    --white: #FFFFFF;
+    --text: #F4F7FF;
+    --muted: rgba(226, 234, 255, .68);
+    --faint: rgba(226, 234, 255, .40);
+    --line: rgba(255, 255, 255, .10);
+    --error: #FF7A8A;
+    --font: "Plus Jakarta Sans", system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    --ease: cubic-bezier(.2, .8, .2, 1);
+  }
+
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    font-family: var(--font);
+    color: var(--text);
+    background: var(--navy-950);
+    -webkit-font-smoothing: antialiased;
+    overflow: hidden;
+  }
+  button { font-family: inherit; -webkit-tap-highlight-color: transparent; touch-action: manipulation; }
+
+  /* ---------- Background ---------- */
+  .bg {
+    position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    background:
+      radial-gradient(900px 600px at 88% -12%, rgba(43, 123, 255, .26), transparent 62%),
+      radial-gradient(700px 520px at -12% 112%, rgba(43, 123, 255, .14), transparent 60%),
+      linear-gradient(180deg, var(--navy-900), var(--navy-950));
+  }
+  .bg::after {
+    content: ""; position: absolute; inset: 0;
+    background-image: radial-gradient(rgba(255, 255, 255, .06) 1px, transparent 1px);
+    background-size: 28px 28px;
+    -webkit-mask-image: radial-gradient(ellipse at 50% 30%, #000 10%, transparent 70%);
+            mask-image: radial-gradient(ellipse at 50% 30%, #000 10%, transparent 70%);
+  }
+
+  /* ---------- Chrome ---------- */
+  .progress { position: fixed; top: 0; left: 0; right: 0; height: 4px; background: rgba(255, 255, 255, .06); z-index: 30; }
+  .progress-bar {
+    height: 100%; width: 0;
+    background: linear-gradient(90deg, var(--blue), var(--blue-hi));
+    box-shadow: 0 0 14px rgba(43, 123, 255, .6);
+    transition: width .6s var(--ease);
+  }
+  .topbar {
+    position: fixed; top: 4px; left: 0; right: 0; z-index: 20;
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 14px clamp(16px, 4vw, 32px);
+    background: linear-gradient(180deg, rgba(5, 10, 28, .92) 40%, rgba(5, 10, 28, 0));
+    pointer-events: none;
+  }
+  .brand { display: flex; align-items: center; gap: 10px; font-weight: 700; font-size: 14px; letter-spacing: .2px; }
+  .brand-mark {
+    width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
+    background: linear-gradient(135deg, var(--blue), #1846C9);
+    box-shadow: 0 4px 16px rgba(43, 123, 255, .45);
+    font-size: 11px; font-weight: 800; color: #fff; letter-spacing: .5px;
+  }
+  .save-status {
+    display: flex; align-items: center; gap: 7px;
+    font-size: 12px; color: var(--faint); opacity: 0; transition: opacity .3s;
+  }
+  .save-status.show { opacity: 1; }
+  .save-status .dot { width: 7px; height: 7px; border-radius: 50%; background: #3DDC97; }
+  .save-status.warn .dot { background: #FFB547; }
+
+  .stage { position: fixed; inset: 0; z-index: 5; overflow-y: auto; overflow-x: hidden; -webkit-overflow-scrolling: touch; }
+  .screen {
+    min-height: 100%;
+    display: flex; align-items: center; justify-content: center;
+    padding: 88px clamp(18px, 5vw, 40px) 112px;
+  }
+  .inner { width: 100%; max-width: 720px; }
+
+  .footer {
+    position: fixed; right: clamp(14px, 3vw, 28px); bottom: clamp(14px, 3vw, 24px); z-index: 20;
+    display: flex; align-items: center; gap: 14px;
+  }
+  .footer[hidden] { display: none; }
+  .step-count { font-size: 13px; color: var(--faint); }
+  .nav { display: flex; border-radius: 10px; overflow: hidden; box-shadow: 0 8px 24px -10px rgba(43, 123, 255, .8); }
+  .nav button {
+    width: 42px; height: 38px; border: 0; cursor: pointer;
+    background: var(--blue); color: #fff; display: grid; place-items: center;
+    transition: background .15s;
+  }
+  .nav button + button { border-left: 1px solid rgba(5, 10, 28, .35); }
+  @media (hover: hover) { .nav button:hover:not(:disabled) { background: #3F88FF; } }
+  .nav button:disabled { background: #1C3A78; color: rgba(255, 255, 255, .45); cursor: default; }
+
+  /* ---------- Video ---------- */
+  .video {
+    position: relative;
+    width: min(100%, calc(46vh * 16 / 9));
+    aspect-ratio: 16 / 9;
+    border-radius: 16px; overflow: hidden;
+    background: var(--navy-800);
+    border: 1px solid var(--line);
+    box-shadow: 0 24px 60px -24px rgba(0, 0, 0, .7), 0 0 0 1px rgba(43, 123, 255, .08);
+    margin-bottom: 30px;
+  }
+  .video iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; }
+  .video-placeholder {
+    position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 12px;
+    color: var(--faint); font-size: 13px; text-align: center; padding: 16px;
+    background: radial-gradient(circle at 50% 45%, rgba(43, 123, 255, .18), transparent 60%);
+  }
+  .play {
+    width: 62px; height: 62px; border-radius: 50%; background: var(--blue);
+    display: grid; place-items: center; box-shadow: 0 0 0 10px rgba(43, 123, 255, .14);
+  }
+
+  /* ---------- Question ---------- */
+  .q-meta {
+    display: flex; align-items: center; gap: 8px; margin-bottom: 12px;
+    color: var(--blue-hi); font-size: 12.5px; font-weight: 700; letter-spacing: .7px; text-transform: uppercase;
+  }
+  .q-num {
+    min-width: 24px; height: 24px; padding: 0 7px; border-radius: 6px;
+    display: grid; place-items: center; background: rgba(43, 123, 255, .16); color: var(--blue-hi);
+    font-size: 12px;
+  }
+  .q-title {
+    margin: 0 0 10px; font-size: clamp(22px, 3.2vw, 30px); line-height: 1.3; font-weight: 600; letter-spacing: -.01em; color: var(--white);
+  }
+  .q-title .req { color: var(--blue-hi); }
+  .q-help { margin: 0; color: var(--muted); font-size: clamp(15px, 1.8vw, 17px); line-height: 1.55; }
+  .answer { margin-top: 26px; }
+
+  .text-input {
+    width: 100%; display: block;
+    background: transparent; border: 0; outline: none; border-radius: 0;
+    border-bottom: 2px solid var(--blue-line);
+    color: var(--white); font: inherit; font-size: clamp(20px, 2.6vw, 26px); line-height: 1.45;
+    padding: 8px 0 10px; transition: border-color .2s; caret-color: var(--blue-hi);
+  }
+  .text-input::placeholder { color: rgba(226, 234, 255, .26); }
+  .text-input:focus { border-bottom-color: var(--blue); }
+  textarea.text-input { resize: none; min-height: 52px; overflow: hidden; }
+
+  .choices { display: flex; flex-direction: column; gap: 10px; max-width: 580px; }
+  .choice {
+    display: flex; align-items: center; gap: 14px; width: 100%; text-align: left;
+    font-size: 16px; color: var(--text); line-height: 1.4;
+    background: var(--blue-soft); border: 1px solid var(--blue-line); border-radius: 10px;
+    padding: 11px 14px; cursor: pointer;
+    transition: background .15s, border-color .15s, transform .12s, opacity .15s;
+  }
+  @media (hover: hover) { .choice:hover { background: rgba(43, 123, 255, .20); border-color: rgba(90, 155, 255, .62); } }
+  .choice:active { transform: scale(.99); }
+  .choice:focus-visible { outline: 2px solid var(--blue-hi); outline-offset: 2px; }
+  .choice .key {
+    flex: none; width: 26px; height: 26px; border-radius: 6px; display: grid; place-items: center;
+    font-size: 12px; font-weight: 700; color: var(--blue-hi);
+    border: 1px solid rgba(90, 155, 255, .5); background: rgba(5, 10, 28, .45);
+    transition: background .15s, color .15s, border-color .15s;
+  }
+  .choice .label { flex: 1; }
+  .choice .check { flex: none; opacity: 0; transform: scale(.6); transition: opacity .15s, transform .2s var(--ease); color: var(--white); }
+  .choice.selected { background: rgba(43, 123, 255, .30); border-color: var(--blue); box-shadow: inset 0 0 0 1px var(--blue); }
+  .choice.selected .key { background: var(--blue); border-color: var(--blue); color: #fff; }
+  .choice.selected .check { opacity: 1; transform: scale(1); }
+  .choice.blink { animation: blink .5s; }
+  .choice.muted { opacity: .5; }
+  @keyframes blink {
+    0%, 50%, 100% { background: rgba(43, 123, 255, .34); }
+    25%, 75%      { background: rgba(43, 123, 255, .06); }
+  }
+  .choice-note { margin-top: 12px; font-size: 13.5px; color: var(--faint); }
+
+  .actions { display: flex; align-items: center; gap: 14px; margin-top: 28px; }
+  .actions[hidden] { display: none; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px;
+    font-size: 16px; font-weight: 700; color: #fff; background: var(--blue);
+    border: 0; border-radius: 10px; padding: 12px 22px; cursor: pointer;
+    box-shadow: 0 10px 26px -10px rgba(43, 123, 255, .9);
+    transition: background .15s, transform .15s, box-shadow .15s;
+  }
+  @media (hover: hover) { .btn:hover { background: #3F88FF; transform: translateY(-1px); box-shadow: 0 14px 30px -10px rgba(43, 123, 255, .95); } }
+  .btn:active { transform: translateY(0); }
+  .btn:focus-visible { outline: 2px solid var(--white); outline-offset: 3px; }
+  .btn-lg { font-size: 18px; padding: 15px 30px; border-radius: 12px; }
+  .hint { font-size: 13px; color: var(--faint); }
+  .hint b { color: var(--muted); font-weight: 600; }
+  .link-btn { background: none; border: 0; color: var(--muted); font-size: 14px; cursor: pointer; text-decoration: underline; text-underline-offset: 3px; padding: 6px; }
+  .link-btn:hover { color: var(--white); }
+
+  .error {
+    display: none; align-items: center; gap: 8px; margin-top: 14px;
+    width: fit-content; padding: 7px 12px; border-radius: 8px;
+    background: rgba(255, 122, 138, .12); color: var(--error); font-size: 14px; font-weight: 500;
+  }
+  .error.show { display: flex; }
+  .shake { animation: shake .42s; }
+  @keyframes shake {
+    20%, 60% { transform: translateX(-6px); }
+    40%, 80% { transform: translateX(6px); }
+  }
+
+  /* ---------- Welcome / Thank you ---------- */
+  .center { text-align: center; max-width: 660px; margin: 0 auto; }
+  .eyebrow {
+    display: inline-flex; align-items: center; gap: 8px; margin-bottom: 22px;
+    padding: 7px 14px; border-radius: 999px;
+    border: 1px solid var(--blue-line); background: var(--blue-soft);
+    color: var(--blue-hi); font-size: 13px; font-weight: 600;
+  }
+  .eyebrow .pulse { width: 7px; height: 7px; border-radius: 50%; background: var(--blue-hi); box-shadow: 0 0 0 0 rgba(90, 155, 255, .7); animation: pulse 2s infinite; }
+  @keyframes pulse { 70% { box-shadow: 0 0 0 9px rgba(90, 155, 255, 0); } 100% { box-shadow: 0 0 0 0 rgba(90, 155, 255, 0); } }
+  .hero-title { margin: 0 0 14px; font-size: clamp(34px, 6vw, 58px); line-height: 1.08; font-weight: 800; letter-spacing: -.025em; color: var(--white); }
+  .hero-title .accent { background: linear-gradient(90deg, var(--blue-hi), var(--blue)); -webkit-background-clip: text; background-clip: text; color: transparent; }
+  .hero-sub { margin: 0 auto 30px; max-width: 520px; color: var(--muted); font-size: clamp(16px, 2vw, 19px); line-height: 1.55; }
+  .hero-meta { display: flex; justify-content: center; gap: 18px; flex-wrap: wrap; margin-top: 22px; color: var(--faint); font-size: 13.5px; }
+  .hero-meta span { display: inline-flex; align-items: center; gap: 6px; }
+  .hero-actions { display: flex; flex-direction: column; align-items: center; gap: 12px; }
+
+  .done-icon { width: 92px; height: 92px; margin: 0 auto 26px; border-radius: 50%; display: grid; place-items: center; background: var(--blue); box-shadow: 0 0 0 14px rgba(43, 123, 255, .14), 0 20px 50px -10px rgba(43, 123, 255, .8); }
+  .done-icon path { stroke-dasharray: 40; stroke-dashoffset: 40; animation: draw .6s .35s var(--ease) forwards; }
+  @keyframes draw { to { stroke-dashoffset: 0; } }
+
+  /* ---------- Transitions ---------- */
+  .enter-up .inner > *   { animation: riseIn .6s var(--ease) both; }
+  .enter-down .inner > * { animation: dropIn .6s var(--ease) both; }
+  .inner > *:nth-child(2) { animation-delay: .05s !important; }
+  .inner > *:nth-child(3) { animation-delay: .10s !important; }
+  .inner > *:nth-child(4) { animation-delay: .15s !important; }
+  .inner > *:nth-child(5) { animation-delay: .20s !important; }
+  .inner > *:nth-child(n+6) { animation-delay: .25s !important; }
+  .leave-up .inner   { animation: leaveUp .3s ease-in both; }
+  .leave-down .inner { animation: leaveDown .3s ease-in both; }
+  @keyframes riseIn   { from { opacity: 0; transform: translateY(28px); }  to { opacity: 1; transform: none; } }
+  @keyframes dropIn   { from { opacity: 0; transform: translateY(-28px); } to { opacity: 1; transform: none; } }
+  @keyframes leaveUp   { to { opacity: 0; transform: translateY(-40px); } }
+  @keyframes leaveDown { to { opacity: 0; transform: translateY(40px); } }
+
+  .footer-ok { display: none; }
+
+  /* ---------- Mobile ---------- */
+  @media (max-width: 640px) {
+    .topbar {
+      padding: 10px 16px;
+      background: rgba(5, 10, 28, .9);
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+      border-bottom: 1px solid var(--line);
+    }
+    .brand { font-size: 13px; gap: 8px; }
+    .brand-mark { width: 24px; height: 24px; border-radius: 7px; font-size: 10px; }
+    .save-status { font-size: 11px; }
+
+    .screen { align-items: flex-start; padding: 68px 16px calc(96px + env(safe-area-inset-bottom)); }
+    .center { padding-top: 7vh; }
+    .hero-sub { font-size: 16px; margin-bottom: 26px; }
+    .hero-actions, .hero-actions .actions { width: 100%; }
+    .btn-lg { width: 100%; justify-content: center; }
+    .hero-meta { flex-direction: column; align-items: center; gap: 8px; }
+
+    .video { width: 100%; border-radius: 12px; margin-bottom: 20px; }
+    .play { width: 52px; height: 52px; box-shadow: 0 0 0 8px rgba(43, 123, 255, .14); }
+    .q-meta { font-size: 11.5px; margin-bottom: 8px; }
+    .q-num { min-width: 22px; height: 22px; font-size: 11px; }
+    .q-title { font-size: 21px; margin-bottom: 8px; }
+    .q-help { font-size: 15px; }
+    .answer { margin-top: 18px; }
+    .text-input { font-size: 20px; }
+    .choices { gap: 8px; }
+    .choice { font-size: 15px; gap: 12px; padding: 12px; min-height: 50px; }
+    .choice .key { width: 24px; height: 24px; font-size: 11px; }
+
+    /* OK button moves into a fixed bottom bar */
+    .inner > .actions { display: none; }
+    .footer {
+      left: 0; right: 0; bottom: 0; gap: 10px;
+      padding: 10px 16px calc(10px + env(safe-area-inset-bottom));
+      background: rgba(5, 10, 28, .94);
+      -webkit-backdrop-filter: blur(12px); backdrop-filter: blur(12px);
+      border-top: 1px solid var(--line);
+    }
+    .footer-ok { display: inline-flex; flex: 1; justify-content: center; padding: 13px 18px; }
+    .step-count { font-size: 12px; white-space: nowrap; }
+    .nav { box-shadow: none; }
+    .nav button { width: 44px; height: 46px; }
+  }
+  @media (pointer: coarse) { .hint { display: none; } }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { animation-duration: .01ms !important; animation-delay: 0s !important; transition-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+  <div class="bg" aria-hidden="true"></div>
+  <div class="progress" aria-hidden="true"><div class="progress-bar" id="bar"></div></div>
+
+  <header class="topbar">
+    <div class="brand"><span class="brand-mark">DB</span><span class="brand-name">Digital Business Bootcamp</span></div>
+    <div class="save-status" id="saveStatus" aria-live="polite"><span class="dot"></span><span id="saveText">Progress saved</span></div>
+  </header>
+
+  <main class="stage" id="stage">
+    <section class="screen" id="screen"></section>
+  </main>
+
+  <div class="footer" id="footer" hidden>
+    <button class="btn footer-ok" id="footerOk" type="button">OK</button>
+    <span class="step-count" id="stepCount"></span>
+    <nav class="nav" aria-label="Question navigation">
+      <button id="prevBtn" aria-label="Previous question">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m18 15-6-6-6 6"/></svg>
+      </button>
+      <button id="nextBtn" aria-label="Next question">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg>
+      </button>
+    </nav>
+  </div>
+
+<script>
+/* =====================================================================
+   1) SETTINGS  –  paste your Google Apps Script Web App URL below
+   ===================================================================== */
+const CONFIG = {
+  SHEET_ENDPOINT: "PASTE_YOUR_GOOGLE_APPS_SCRIPT_WEB_APP_URL_HERE",
+  STORAGE_KEY: "dbb-business-form-v1",
+  FORM_NAME: "Digital Business Bootcamp – Business Understanding Form",
+};
+
+/* =====================================================================
+   2) QUESTIONS
+   - type:  "short" | "phone" | "long" | "single" | "multi"
+   - video: paste the Vimeo link (e.g. https://vimeo.com/123456789
+            or https://vimeo.com/123456789/abc123def for unlisted videos).
+            Leave "" to show no video on that page.
+   - sheet: the column heading used in Google Sheets
+   ===================================================================== */
+const STEPS = [
+  {
+    id: "name", sheet: "Name", type: "short", video: "",
+    title: "What's your name?",
+    placeholder: "Type your full name", minLength: 2,
+  },
+  {
+    id: "batch", sheet: "Batch Number", type: "short", video: "",
+    title: "What is your batch number?",
+    placeholder: "Type your batch number",
+  },
+  {
+    id: "phone", sheet: "Phone Number", type: "phone", video: "",
+    title: "What is your phone number?",
+    placeholder: "e.g. +91 98765 43210",
+  },
+  {
+    id: "q1", num: 1, sheet: "Q1. Current Business Stage", type: "single",
+    video: "PASTE_VIMEO_LINK_Q1",
+    title: "What is your current business stage?",
+    options: [
+      "I am currently running a business",
+      "I have a clear business idea and plan to start soon",
+      "I want to start a business, but I have not selected an idea",
+      "I have joined only to learn about digital business",
+    ],
+  },
+  {
+    id: "q2", num: 2, sheet: "Q2. Business / Business Idea", type: "long",
+    video: "PASTE_VIMEO_LINK_Q2",
+    title: "What business are you running or planning to start?",
+    help: "Briefly explain your business or business idea. If you do not have an idea yet, type “I do not have a business yet.”",
+    placeholder: "Type your answer here…",
+  },
+  {
+    id: "q3", num: 3, sheet: "Q3. How Customers Buy", type: "single",
+    video: "PASTE_VIMEO_LINK_Q3",
+    title: "Which option best describes how customers buy from you?",
+    options: [
+      "I sell physical products to customers through courier",
+      "Customers visit my location for a product or service",
+      "I provide a service at the customer’s location",
+      "I provide an online service, consultation or course",
+      "I am not sure how to classify my business",
+      "I do not have a business yet",
+    ],
+  },
+  {
+    id: "q4", num: 4, sheet: "Q4. Digital Platforms / Tools Used", type: "multi",
+    video: "PASTE_VIMEO_LINK_Q4",
+    title: "Which digital platforms or tools do you currently use for your business?",
+    help: "Select all that apply.",
+    options: [
+      "WhatsApp Business",
+      "Instagram",
+      "Facebook",
+      "Google Business Profile",
+      "Website or landing page",
+      "YouTube",
+      "Email marketing",
+      "LinkedIn marketing",
+      "Paid online advertisements",
+      "I am not using any digital platform",
+      "I do not have a business yet",
+    ],
+    // choosing one of these clears the other selections (and vice-versa)
+    exclusive: ["I am not using any digital platform", "I do not have a business yet"],
+  },
+  {
+    id: "q5", num: 5, sheet: "Q5. Marketing & Content Activity", type: "single",
+    video: "PASTE_VIMEO_LINK_Q5",
+    title: "Which option best describes your current marketing and content activity?",
+    options: [
+      "I am not doing any marketing",
+      "I have social media accounts, but I rarely post",
+      "I post occasionally without a clear plan",
+      "I post regularly, but I am not getting enough enquiries",
+      "I regularly create content and receive some enquiries",
+      "I run paid advertisements",
+      "I use both regular content and paid advertisements",
+      "I do not have a business yet",
+    ],
+  },
+  {
+    id: "q6", num: 6, sheet: "Q6. Biggest Challenges", type: "multi", max: 2,
+    video: "PASTE_VIMEO_LINK_Q6",
+    title: "What are your biggest business or marketing challenges?",
+    help: "Select a maximum of two options.",
+    options: [
+      "I am not clear about my customer, positioning or offer",
+      "I do not know how to create content consistently",
+      "I am not getting enough leads or sales",
+      "I do not know how to use digital tools and AI",
+      "I do not have a business yet",
+    ],
+    exclusive: ["I do not have a business yet"],
+  },
+  {
+    id: "q7", num: 7, sheet: "Q7. Goals From Bootcamp", type: "long",
+    video: "PASTE_VIMEO_LINK_Q7",
+    title: "What would you like to learn or achieve through this bootcamp?",
+    placeholder: "Type your answer here…",
+  },
+];
+
+/* =====================================================================
+   3) APP  (no changes needed below this line)
+   ===================================================================== */
+const LETTERS = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+const QCOUNT = STEPS.filter(s => s.num).length;
+const IS_TOUCH = window.matchMedia("(pointer: coarse)").matches;
+
+const $ = sel => document.querySelector(sel);
+const stage = $("#stage"), screen = $("#screen"), bar = $("#bar");
+const footer = $("#footer"), prevBtn = $("#prevBtn"), nextBtn = $("#nextBtn"), stepCount = $("#stepCount"), footerOk = $("#footerOk");
+
+let state = loadState();
+let resumeIndex = null;   // where a returning visitor left off
+let pick = null;          // current (uncommitted) selection for choice questions
+let busy = false;
+let autoTimer = null;
+
+/* ---------- State & storage ---------- */
+function freshState() {
+  return {
+    sessionId: (crypto.randomUUID ? crypto.randomUUID() : Date.now().toString(36) + Math.random().toString(36).slice(2)),
+    startedAt: new Date().toISOString(),
+    index: -1, answers: {}, seq: 0, completed: false, pendingSync: false,
+  };
+}
+function loadState() {
+  try {
+    if (new URLSearchParams(location.search).has("new")) localStorage.removeItem(CONFIG.STORAGE_KEY);
+    const s = JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY));
+    if (s && s.sessionId && s.answers) return s;
+  } catch (e) {}
+  return freshState();
+}
+function persist() {
+  try { localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+}
+const hasValue = v => Array.isArray(v) ? v.length > 0 : (v != null && String(v).trim() !== "");
+const answeredCount = () => STEPS.filter(s => hasValue(state.answers[s.id])).length;
+
+/* ---------- Helpers ---------- */
+function esc(str) {
+  return String(str).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function vimeoEmbedUrl(url) {
+  if (!url) return null;
+  let m = url.match(/player\.vimeo\.com\/video\/(\d+)(?:[^#]*?[?&]h=([a-z0-9]+))?/i)
+       || url.match(/vimeo\.com\/(?:[^?#]*?\/)?(\d{6,})(?:\/([a-z0-9]{6,}))?/i);
+  if (!m) return null;
+  const params = new URLSearchParams({ title: "0", byline: "0", portrait: "0", dnt: "1", color: "2B7BFF" });
+  if (m[2]) params.set("h", m[2]);
+  return `https://player.vimeo.com/video/${m[1]}?${params}`;
+}
+
+const ICON_ARROW = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>`;
+const ICON_CHECK = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg>`;
+const ICON_ALERT = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4M12 16h.01"/></svg>`;
+
+/* ---------- Templates ---------- */
+function welcomeHTML() {
+  const resuming = resumeIndex !== null;
+  const name = hasValue(state.answers.name) ? ", " + esc(String(state.answers.name).split(" ")[0]) : "";
+  return `
+  <div class="inner center">
+    <div><span class="eyebrow"><span class="pulse"></span>Business Understanding Form</span></div>
+    <h1 class="hero-title">${resuming ? `Welcome back${name}` : `Digital Business <span class="accent">Bootcamp</span>`}</h1>
+    <p class="hero-sub">${resuming
+      ? `You've answered ${answeredCount()} of ${STEPS.length} questions. Pick up right where you left off.`
+      : `Help us understand you and your business so we can make this bootcamp truly useful for you.`}</p>
+    <div class="hero-actions">
+      <div class="actions" style="margin-top:0">
+        <button class="btn btn-lg" id="startBtn">${resuming ? "Continue" : "Let's start"} ${ICON_ARROW}</button>
+        <span class="hint">press <b>Enter ↵</b></span>
+      </div>
+      ${resuming ? `<button class="link-btn" id="restartBtn">Start over</button>` : ""}
+    </div>
+    <div class="hero-meta">
+      <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>Takes about 5 minutes</span>
+      <span><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="m23 7-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Short video with each question</span>
+    </div>
+  </div>`;
+}
+
+function thanksHTML() {
+  const first = hasValue(state.answers.name) ? ", " + esc(String(state.answers.name).trim().split(" ")[0]) : "";
+  return `
+  <div class="inner center">
+    <div class="done-icon"><svg width="44" height="44" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6 9 17l-5-5"/></svg></div>
+    <h1 class="hero-title">Thank you${first}!</h1>
+    <p class="hero-sub">Your responses have been submitted successfully. See you in the bootcamp.</p>
+  </div>`;
+}
+
+function videoHTML(step) {
+  if (!step.video) return "";
+  const src = vimeoEmbedUrl(step.video);
+  if (!src) {
+    return `<div class="video"><div class="video-placeholder">
+      <div class="play"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></div>
+      Video will appear here</div></div>`;
+  }
+  return `<div class="video"><iframe src="${esc(src)}" title="${esc(step.title)} – video"
+    allow="autoplay; fullscreen; picture-in-picture; clipboard-write" allowfullscreen loading="eager"></iframe></div>`;
+}
+
+function stepHTML(step) {
+  const saved = state.answers[step.id];
+  const kicker = step.num
+    ? `<span class="q-num">${step.num}</span>${ICON_ARROW}<span>Question ${step.num} of ${QCOUNT}</span>`
+    : `${ICON_ARROW}<span>About you</span>`;
+
+  let input = "";
+  if (step.type === "short" || step.type === "phone") {
+    input = `<input class="text-input" type="${step.type === "phone" ? "tel" : "text"}" enterkeyhint="next"
+      ${step.type === "phone" ? 'inputmode="tel" autocomplete="tel"' : step.id === "name" ? 'autocomplete="name"' : 'autocomplete="off"'}
+      placeholder="${esc(step.placeholder || "Type your answer here…")}" value="${esc(saved || "")}" aria-label="${esc(step.title)}" />`;
+  } else if (step.type === "long") {
+    input = `<textarea class="text-input" rows="1" placeholder="${esc(step.placeholder || "Type your answer here…")}" aria-label="${esc(step.title)}">${esc(saved || "")}</textarea>`;
+  } else {
+    const multi = step.type === "multi";
+    input = `<div class="choices" role="${multi ? "group" : "radiogroup"}" aria-label="${esc(step.title)}">
+      ${step.options.map((opt, i) => `
+        <button type="button" class="choice" data-i="${i}" role="${multi ? "checkbox" : "radio"}" aria-checked="false">
+          <span class="key">${LETTERS[i]}</span><span class="label">${esc(opt)}</span><span class="check">${ICON_CHECK}</span>
+        </button>`).join("")}
+    </div>${multi ? `<div class="choice-note" id="choiceNote"></div>` : ""}`;
+  }
+
+  const enterHint = step.type === "long" ? "<b>Enter ↵</b> &nbsp;·&nbsp; <b>Shift + Enter</b> for new line" : "press <b>Enter ↵</b>";
+  const hideActions = step.type === "single" && !hasValue(saved);
+  const isLast = state.index === STEPS.length - 1;
+
+  return `
+  <div class="inner">
+    ${videoHTML(step)}
+    <div class="q-meta">${kicker}</div>
+    <h2 class="q-title">${esc(step.title)} <span class="req">*</span></h2>
+    ${step.help ? `<p class="q-help">${esc(step.help)}</p>` : ""}
+    <div class="answer">${input}</div>
+    <div class="error" role="alert">${ICON_ALERT}<span class="error-text"></span></div>
+    <div class="actions" ${hideActions ? "hidden" : ""}>
+      <button class="btn ok" type="button">${isLast ? "Submit" : "OK"} ${ICON_CHECK}</button>
+      <span class="hint">${enterHint}</span>
+    </div>
+  </div>`;
+}
+
+/* ---------- Rendering ---------- */
+function render() {
+  clearTimeout(autoTimer);
+  const i = state.index;
+  if (i < 0) screen.innerHTML = welcomeHTML();
+  else if (i >= STEPS.length) screen.innerHTML = thanksHTML();
+  else screen.innerHTML = stepHTML(STEPS[i]);
+  bind();
+  updateChrome();
+}
+
+function updateChrome() {
+  const i = state.index;
+  const pct = state.completed ? 100 : (answeredCount() / STEPS.length) * 100;
+  bar.style.width = pct + "%";
+  const onStep = i >= 0 && i < STEPS.length;
+  footer.hidden = !onStep;
+  if (onStep) {
+    prevBtn.disabled = i === 0;
+    nextBtn.disabled = !hasValue(state.answers[STEPS[i].id]);
+    stepCount.textContent = `${i + 1} of ${STEPS.length}`;
+    footerOk.innerHTML = `${i === STEPS.length - 1 ? "Submit" : "OK"} ${ICON_CHECK}`;
+  }
+}
+
+function bind() {
+  const i = state.index;
+  if (i < 0) {
+    $("#startBtn").onclick = start;
+    const r = $("#restartBtn");
+    if (r) r.onclick = () => { state = freshState(); resumeIndex = null; persist(); go(0, 1); };
+    return;
+  }
+  if (i >= STEPS.length) return;
+
+  const step = STEPS[i];
+  screen.querySelector(".ok").onclick = goNext;
+
+  const field = screen.querySelector(".text-input");
+  if (field) {
+    field.addEventListener("input", () => {
+      hideError();
+      if (field.tagName === "TEXTAREA") autoGrow(field);
+    });
+    if (field.tagName === "TEXTAREA") autoGrow(field);
+    return;
+  }
+
+  // choice questions
+  const saved = state.answers[step.id];
+  pick = step.type === "multi" ? (Array.isArray(saved) ? saved.slice() : []) : (saved || null);
+  paintChoices(step);
+
+  screen.querySelectorAll(".choice").forEach(btn => {
+    btn.addEventListener("click", e => {
+      if (busy) return;
+      if (e.detail > 0) btn.blur(); // mouse click: keep Enter free for "OK"
+      const opt = step.options[+btn.dataset.i];
+      hideError();
+      if (step.type === "single") {
+        pick = opt;
+        paintChoices(step);
+        btn.classList.remove("blink"); void btn.offsetWidth; btn.classList.add("blink");
+        clearTimeout(autoTimer);
+        autoTimer = setTimeout(goNext, 520);
+      } else {
+        toggleMulti(step, opt);
+      }
+    });
+  });
+}
+
+function toggleMulti(step, opt) {
+  const exclusive = step.exclusive || [];
+  let arr = pick.slice();
+  if (arr.includes(opt)) {
+    arr = arr.filter(x => x !== opt);
+  } else if (exclusive.includes(opt)) {
+    arr = [opt];
+  } else {
+    arr = arr.filter(x => !exclusive.includes(x));
+    if (step.max && arr.length >= step.max) {
+      showError(`You can select a maximum of ${step.max} options. Unselect one to choose another.`);
+      return;
+    }
+    arr.push(opt);
+  }
+  pick = step.options.filter(o => arr.includes(o));
+  paintChoices(step);
+}
+
+function paintChoices(step) {
+  const multi = step.type === "multi";
+  const selected = multi ? pick : (pick ? [pick] : []);
+  screen.querySelectorAll(".choice").forEach(btn => {
+    const on = selected.includes(step.options[+btn.dataset.i]);
+    btn.classList.toggle("selected", on);
+    btn.setAttribute("aria-checked", on);
+    btn.classList.toggle("muted", !!(multi && step.max && !on && selected.length >= step.max));
+  });
+  if (multi) {
+    const note = $("#choiceNote");
+    if (note) {
+      note.textContent = step.max
+        ? `${selected.length} of ${step.max} selected`
+        : selected.length ? `${selected.length} selected` : "Choose as many as you like";
+    }
+    screen.querySelector(".actions").hidden = false;
+  } else if (selected.length) {
+    screen.querySelector(".actions").hidden = false;
+  }
+}
+
+function autoGrow(el) {
+  el.style.height = "auto";
+  el.style.height = el.scrollHeight + "px";
+}
+
+function focusField() {
+  if (IS_TOUCH) return; // don't pop the mobile keyboard over the video
+  const f = screen.querySelector(".text-input");
+  if (f) {
+    f.focus({ preventScroll: true });
+    const len = f.value.length;
+    try { f.setSelectionRange(len, len); } catch (e) {}
+  }
+}
+
+/* ---------- Navigation ---------- */
+function go(to, dir) {
+  if (busy) return;
+  busy = true;
+  screen.classList.remove("enter-up", "enter-down");
+  screen.classList.add(dir > 0 ? "leave-up" : "leave-down");
+  setTimeout(() => {
+    state.index = to;
+    if (to >= 0) persist();
+    render();
+    stage.scrollTop = 0;
+    screen.classList.remove("leave-up", "leave-down");
+    void screen.offsetWidth;
+    screen.classList.add(dir > 0 ? "enter-up" : "enter-down");
+    busy = false;
+    focusField();
+  }, 290);
+}
+
+function start() {
+  go(resumeIndex !== null ? resumeIndex : 0, 1);
+  resumeIndex = null;
+}
+
+function readValue(step) {
+  if (step.type === "single") return pick;
+  if (step.type === "multi") return pick.slice();
+  return screen.querySelector(".text-input").value.trim();
+}
+
+function validate(step, v) {
+  switch (step.type) {
+    case "single": return v ? "" : "Please select an option";
+    case "multi":  return v.length ? "" : "Please select at least one option";
+    case "phone": {
+      const digits = v.replace(/\D/g, "");
+      if (!v) return "Please enter your phone number";
+      return digits.length >= 10 && digits.length <= 15 && /^[+\d\s()-]+$/.test(v) ? "" : "Please enter a valid phone number";
+    }
+    default:
+      if (!v) return "Please fill this in";
+      if (step.minLength && v.length < step.minLength) return `Please enter at least ${step.minLength} characters`;
+      return "";
+  }
+}
+
+function goNext() {
+  if (busy) return;
+  clearTimeout(autoTimer);
+  const i = state.index;
+  if (i < 0) return start();
+  if (i >= STEPS.length) return;
+
+  const step = STEPS[i];
+  const value = readValue(step);
+  const err = validate(step, value);
+  if (err) return showError(err);
+
+  const changed = JSON.stringify(state.answers[step.id]) !== JSON.stringify(value);
+  state.answers[step.id] = value;
+  const isLast = i === STEPS.length - 1;
+  if (isLast) state.completed = true;
+  if (changed || isLast) { state.seq++; state.pendingSync = true; }
+  persist();
+  sync();
+  go(i + 1, 1);
+}
+
+function goPrev() {
+  if (busy || state.index <= 0 || state.index >= STEPS.length) return;
+  go(state.index - 1, -1);
+}
+
+function showError(msg) {
+  const box = screen.querySelector(".error");
+  if (!box) return;
+  box.querySelector(".error-text").textContent = msg;
+  box.classList.add("show");
+  const target = screen.querySelector(".answer");
+  target.classList.remove("shake"); void target.offsetWidth; target.classList.add("shake");
+  if (window.matchMedia("(max-width: 640px)").matches) box.scrollIntoView({ block: "center", behavior: "smooth" });
+}
+function hideError() {
+  const box = screen.querySelector(".error");
+  if (box) box.classList.remove("show");
+}
+
+prevBtn.onclick = goPrev;
+nextBtn.onclick = goNext;
+footerOk.onclick = goNext;
+
+document.addEventListener("keydown", e => {
+  if (busy || e.metaKey || e.ctrlKey || e.altKey) return;
+  const i = state.index;
+  if (i >= STEPS.length) return;
+  const tag = e.target.tagName;
+
+  if (e.key === "Enter") {
+    if (tag === "BUTTON" || e.isComposing) return;          // native button behaviour
+    if (tag === "TEXTAREA" && (e.shiftKey || IS_TOUCH)) return; // new line
+    e.preventDefault();
+    goNext();
+    return;
+  }
+
+  // A, B, C… shortcuts for choice questions
+  if (i >= 0 && tag !== "INPUT" && tag !== "TEXTAREA" && e.key.length === 1) {
+    const idx = LETTERS.indexOf(e.key.toUpperCase());
+    const btn = idx >= 0 && screen.querySelector(`.choice[data-i="${idx}"]`);
+    if (btn) { e.preventDefault(); btn.click(); }
+  }
+});
+
+/* ---------- Google Sheets sync ---------- */
+function endpointReady() {
+  return /^https:\/\/script\.google\.com\/macros\/s\/.+\/exec/.test(CONFIG.SHEET_ENDPOINT);
+}
+
+function buildPayload() {
+  const last = [...STEPS].reverse().find(s => hasValue(state.answers[s.id]));
+  return {
+    formName: CONFIG.FORM_NAME,
+    sessionId: state.sessionId,
+    seq: state.seq,
+    status: state.completed ? "Completed" : "Partial",
+    progress: `${answeredCount()} / ${STEPS.length}`,
+    lastAnswered: last ? last.sheet : "",
+    startedAt: state.startedAt,
+    device: IS_TOUCH ? "Mobile / Tablet" : "Desktop",
+    fields: STEPS.map(s => {
+      const v = state.answers[s.id];
+      return { label: s.sheet, value: Array.isArray(v) ? v.join(" | ") : (v || "") };
+    }),
+  };
+}
+
+function sync(useBeacon) {
+  if (!state.pendingSync) return;
+  if (!endpointReady()) {
+    console.warn("[Form] SHEET_ENDPOINT is not set – answers are only saved in this browser.");
+    return;
+  }
+  const body = JSON.stringify(buildPayload());
+  const seqSent = state.seq;
+
+  if (useBeacon && navigator.sendBeacon) {
+    navigator.sendBeacon(CONFIG.SHEET_ENDPOINT, new Blob([body], { type: "text/plain;charset=utf-8" }));
+    return;
+  }
+  setSaveStatus("Saving…");
+  fetch(CONFIG.SHEET_ENDPOINT, {
+    method: "POST", mode: "no-cors", keepalive: true,
+    headers: { "Content-Type": "text/plain;charset=utf-8" },
+    body,
+  })
+    .then(() => {
+      if (state.seq === seqSent) { state.pendingSync = false; persist(); }
+      setSaveStatus("Progress saved");
+    })
+    .catch(() => setSaveStatus("Offline – will retry", true));
+}
+
+let saveTimer;
+function setSaveStatus(text, warn) {
+  const el = $("#saveStatus");
+  $("#saveText").textContent = text;
+  el.classList.toggle("warn", !!warn);
+  el.classList.add("show");
+  clearTimeout(saveTimer);
+  if (!warn && text !== "Saving…") saveTimer = setTimeout(() => el.classList.remove("show"), 2200);
+}
+
+window.addEventListener("online", () => sync());
+window.addEventListener("pagehide", () => sync(true));
+document.addEventListener("visibilitychange", () => { if (document.visibilityState === "hidden") sync(true); });
+
+/* ---------- Boot ---------- */
+(function boot() {
+  if (state.completed) {
+    state.index = STEPS.length;
+  } else if (state.index >= 0 && answeredCount() > 0) {
+    resumeIndex = Math.min(state.index, STEPS.length - 1);
+    state.index = -1;
+  } else {
+    state.index = -1;
+  }
+  render();
+  screen.classList.add("enter-up");
+  sync(); // resend anything that didn't reach the sheet last time
+})();
+</script>
+</body>
+</html>
