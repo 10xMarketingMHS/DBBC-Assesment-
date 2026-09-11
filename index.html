@@ -572,7 +572,7 @@ function welcomeHTML() {
   return `
   <div class="inner center">
     <div class="hero-thumb">
-      <img src="thumbnail.jpg" srcset="thumbnail-720.jpg 720w, thumbnail.jpg 1344w" sizes="(max-width: 700px) 100vw, 640px"
+      <img src="thumbnail.jpg?v=2" srcset="thumbnail-720.jpg?v=2 720w, thumbnail.jpg?v=2 1344w" sizes="(max-width: 700px) 100vw, 640px"
         width="1344" height="756" alt="Digital Business Bootcamp" fetchpriority="high" decoding="async" />
     </div>
     <h1 class="hero-title">${resuming ? `Welcome back${name ? ", " + esc(name) : ""}` : `Business Understanding <span class="accent">Form</span>`}</h1>
