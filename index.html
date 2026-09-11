@@ -488,6 +488,7 @@ let resumeIndex = null;   // where a returning visitor left off
 let pick = null;          // current (uncommitted) selection for choice questions
 let busy = false;
 let autoTimer = null;
+const playedVideos = new Set(); // pages whose video already autoplayed this visit
 
 /* ---------- State & storage ---------- */
 function freshState() {
@@ -519,12 +520,16 @@ const firstName = () => hasValue(state.answers.name) ? String(state.answers.name
 function esc(str) {
   return String(str).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
-function vimeoEmbedUrl(url) {
+function vimeoEmbedUrl(url, autoplay) {
   if (!url) return null;
   const m = url.match(/player\.vimeo\.com\/video\/(\d+)(?:[^#]*?[?&]h=([a-z0-9]+))?/i)
          || url.match(/vimeo\.com\/(?:[^?#]*?\/)?(\d{6,})(?:\/([a-z0-9]{6,}))?/i);
   if (!m) return null;
   const params = new URLSearchParams({ title: "0", byline: "0", portrait: "0", dnt: "1", color: "2B7BFF" });
+  // Autoplay with sound works once the visitor has clicked on the page ("Let's start").
+  // Browsers that still block sound (Safari) fall back to muted autoplay with Vimeo's Unmute button.
+  params.set("autoplay", autoplay ? "1" : "0");
+  if (autoplay) params.set("muted", "0");
   if (m[2]) params.set("h", m[2]);
   return `https://player.vimeo.com/video/${m[1]}?${params}`;
 }
@@ -574,7 +579,10 @@ function thanksHTML() {
 
 function videoHTML(step) {
   if (!step.video) return "";
-  const src = vimeoEmbedUrl(step.video);
+  // autoplay only the first time a page is shown during this visit
+  const firstView = !playedVideos.has(step.id);
+  playedVideos.add(step.id);
+  const src = vimeoEmbedUrl(step.video, firstView);
   if (!src) {
     return `<div class="video"><div class="video-placeholder">
       <div class="play"><svg width="22" height="22" viewBox="0 0 24 24" fill="#fff"><path d="M8 5v14l11-7z"/></svg></div>
